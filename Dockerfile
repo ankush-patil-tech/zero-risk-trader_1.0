@@ -35,7 +35,7 @@ RUN pip install --upgrade pip \
 COPY . .
 
 # Expose application port
-EXPOSE 8000 
+EXPOSE 8000  
 
 # Run Django with Gunicorn
 CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn auth_project.wsgi:application --workers=1 --threads=1 --timeout=300 --bind 0.0.0.0:${PORT:-8000} --access-logfile - --error-logfile - --log-level info"]
