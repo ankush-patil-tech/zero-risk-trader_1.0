@@ -50,6 +50,13 @@ import logging
 import warnings
 from django.shortcuts import render
 from auth_app.forms import HyperparameterForm
+from django.contrib import messages
+from django.contrib.auth.models import User
+from django.shortcuts import redirect
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.contrib.auth.tokens import default_token_generator
+
 
 warnings.filterwarnings("ignore")
 logger = logging.getLogger(__name__)
@@ -244,59 +251,96 @@ def send_verification_email(user, request):
     print("Verification email sent.")
 
 
+
 def verify_email(request, uidb64, token):
     try:
-        # Decode the user ID from the base64 encoded string
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
-
-        # Debugging: Log the UID and Token
-        logger.debug(f"UID: {uidb64}, Token: {token}")
-
-        # Check if the token is valid for the user
-        if default_token_generator.check_token(user, token):
-            # Mark email as verified and activate the account
-            user_profile = getattr(user, 'profile', None)
-
-            if user_profile:
-                user_profile.email_verified = True  # Assuming you have an 'email_verified' field in Profile model
-                user_profile.save()
-            else:
-                logger.error(f"User profile not found for user {user.pk}")
-                messages.error(request, 'Profile not found for this user.')
-                return redirect('register')
-
-            user.is_active = True
-            user.save()
-
-            # Show success message
-            messages.success(request, 'Email verified successfully! Please log in.')
-            return redirect('login')  # Redirect to login after successful email verification
-        else:
-            # Token is invalid or expired
-            messages.error(request, 'Invalid or expired verification link.')
-            return redirect('register')
-
     except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
-        # Handle cases where the token is invalid, user doesn't exist, or decoding failed
         logger.error(f"Email verification error: {e}")
-        messages.error(request, 'Invalid verification link.')
-        return redirect('register')
+        messages.error(request, "Invalid verification link.")
+        return redirect("register")
 
+    # Token validation
+    if not default_token_generator.check_token(user, token):
+        messages.error(request, "Verification link expired or invalid.")
+        return redirect("register")
 
-def activate_view(request, uidb64, token):
-    try:
-        uid = urlsafe_base64_decode(uidb64).decode()
-        user = get_user_model().objects.get(pk=uid)
-    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
-        user = None
+    # If already active → safe exit
+    if user.is_active:
+        messages.info(request, "Account already activated. Please log in.")
+        return redirect("login")
 
-    if user is not None and default_token_generator.check_token(user, token):
-        user.is_active = True
-        user.save()
-        return redirect('login')
+    # Activate user
+    user.is_active = True
+    user.save()
+
+    # OPTIONAL: profile handling (SAFE)
+    user_profile = getattr(user, "profile", None)
+    if user_profile:
+        user_profile.email_verified = True
+        user_profile.save()
     else:
-        return render(request, 'auth/activation_failed.html')
+        # Do NOT fail activation if profile missing
+        logger.warning(f"Profile missing for user {user.pk}, skipping profile update")
+
+    messages.success(request, "Email verified successfully! Please log in.")
+    return redirect("login")
+
+
+# def verify_email(request, uidb64, token):
+#     try:
+#         # Decode the user ID from the base64 encoded string
+#         uid = force_str(urlsafe_base64_decode(uidb64))
+#         user = User.objects.get(pk=uid)
+
+#         # Debugging: Log the UID and Token
+#         logger.debug(f"UID: {uidb64}, Token: {token}")
+
+#         # Check if the token is valid for the user
+#         if default_token_generator.check_token(user, token):
+#             # Mark email as verified and activate the account
+#             user_profile = getattr(user, 'profile', None)
+
+#             if user_profile:
+#                 user_profile.email_verified = True  # Assuming you have an 'email_verified' field in Profile model
+#                 user_profile.save()
+#             else:
+#                 logger.error(f"User profile not found for user {user.pk}")
+#                 messages.error(request, 'Profile not found for this user.')
+#                 return redirect('register')
+
+#             user.is_active = True
+#             user.save()
+
+#             # Show success message
+#             messages.success(request, 'Email verified successfully! Please log in.')
+#             return redirect('login')  # Redirect to login after successful email verification
+#         else:
+#             # Token is invalid or expired
+#             messages.error(request, 'Invalid or expired verification link.')
+#             return redirect('register')
+
+#     except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
+#         # Handle cases where the token is invalid, user doesn't exist, or decoding failed
+#         logger.error(f"Email verification error: {e}")
+#         messages.error(request, 'Invalid verification link.')
+#         return redirect('register')
+
+
+# def activate_view(request, uidb64, token):
+#     try:
+#         uid = urlsafe_base64_decode(uidb64).decode()
+#         user = get_user_model().objects.get(pk=uid)
+#     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+#         user = None
+
+#     if user is not None and default_token_generator.check_token(user, token):
+#         user.is_active = True
+#         user.save()
+#         return redirect('login')
+#     else:
+#         return render(request, 'auth/activation_failed.html')
 
 
 def email_verification_sent_view(request):
