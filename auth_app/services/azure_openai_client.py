@@ -1,11 +1,14 @@
 import os
 from openai import AzureOpenAI
-from dotenv import load_dotenv
 
-load_dotenv()
+_client = None
 
-client = AzureOpenAI(
-    api_key=os.getenv("AZURE_OPENAI_API_KEY"),
-    azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
-    api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
-)
+def get_azure_openai_client():
+    global _client
+    if _client is None:
+        _client = AzureOpenAI(
+            api_key=os.getenv("AZURE_OPENAI_API_KEY"),
+            azure_endpoint=os.getenv("AZURE_OPENAI_ENDPOINT"),
+            api_version=os.getenv("AZURE_OPENAI_API_VERSION"),
+        )
+    return _client
