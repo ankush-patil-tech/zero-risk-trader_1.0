@@ -1,0 +1,123 @@
+<!-- templates/register_alpha_vantage.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="referrer" content="origin">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Register for Alpha Vantage API</title>
+    <style>
+        /* General Styling */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .form-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 25px;
+            font-size: 22px;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+            font-size: 15px;
+            color: #555;
+        }
+
+        select, input[type="text"], input[type="email"] {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 15px;
+        }
+
+        button, input[type="submit"] {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover, input[type="submit"]:hover {
+            background-color: #0056b3;
+        }
+
+        /* Styling for messages */
+        .messages {
+            list-style: none;
+            padding: 0;
+            margin-top: 20px;
+        }
+
+        .messages li {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h1>Register for Alpha Vantage API Key</h1>
+
+        <form method="POST" id="post-form">
+            {% csrf_token %}
+
+            <label for="occupation-text">Which of the following best describes you?</label>
+            <select name="occupation" id="occupation-text" required>
+                <option value="Investor">Investor</option>
+                <option value="Software Developer">Software Developer</option>
+                <option value="Educator">Educator</option>
+                <option value="Student">Student</option>
+                <option value="Other">Other</option>
+            </select>
+
+            <label for="organization-text">Organization (e.g., company, university, etc.):</label>
+            <input type="text" name="organization" id="organization-text" required>
+
+            <label for="email-text">Email:</label>
+            <input type="email" name="email" id="email-text" required maxlength="254">
+
+            <input id="submit-btn" type="submit" value="Get Free API Key" onClick="gtag('event', 'get_key');">
+        </form>
+
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+    </div>
+</body>
+</html>

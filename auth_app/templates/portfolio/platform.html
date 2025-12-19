@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load humanize %}
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Portfolio</title>
+
+<style>
+/* ================= BASE ================= */
+body {
+    font-family: "Segoe UI", Poppins, sans-serif;
+    background-color: #f5f7fb;
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    color: #374151;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ================= MAIN CONTAINER ================= */
+.container {
+    background-color: #ffffff;
+    padding: 36px 40px 80px;
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.12);
+    max-width: 1250px;
+    width: 92%;
+    margin: 40px auto 0;
+    flex: 1;
+}
+
+/* ================= HEADINGS ================= */
+h1 {
+    font-size: 32px;
+    font-weight: 800;
+    color: #111827;
+    margin-bottom: 6px;
+}
+
+h2 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 24px 0 10px;
+}
+
+h3 {
+    font-size: 17px;
+    font-weight: 500;
+    color: #6b7280;
+    margin-bottom: 24px;
+}
+
+/* ================= HEADER LINE ================= */
+.header-line {
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(to right, #2563eb, #60a5fa);
+    border-radius: 2px;
+    margin: 18px 0 30px;
+}
+
+/* ================= TOP BUTTONS ================= */
+.top-right-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.top-right-buttons a {
+    padding: 10px 18px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: #2563eb;
+    border-radius: 8px;
+    text-decoration: none;
+    min-width: 140px;
+    text-align: center;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.top-right-buttons a:hover {
+    background-color: #1e40af;
+    transform: translateY(-1px);
+}
+
+/* ================= PORTFOLIO SECTION ================= */
+.portfolio-section {
+    display: flex;
+    gap: 40px;
+    margin-top: 30px;
+    flex-wrap: wrap;
+}
+
+/* ================= PORTFOLIO INFO ================= */
+.portfolio-info {
+    flex: 1;
+    display: grid;
+    grid-template-columns: auto auto;
+    gap: 14px 30px;
+    font-size: 18px;
+}
+
+.label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.value {
+    font-weight: 700;
+    color: #2563eb;
+}
+
+/* ================= VALUE COLORS ================= */
+.text-red { color: #dc2626; }
+.text-green { color: #16a34a; }
+.text-neutral { color: #374151; }
+
+/* ================= TABLE ================= */
+.holdings-table {
+    flex: 1;
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    min-width: 600px;
+    border-collapse: collapse;
+    margin-top: 20px;
+    font-size: 15px;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+table th {
+    background: #1f2937;
+    color: #ffffff;
+    padding: 12px 14px;
+    font-weight: 700;
+    text-align: left;
+}
+
+table td {
+    padding: 12px 14px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+table tbody tr:nth-child(even) {
+    background-color: #f9fafb;
+}
+
+table tbody tr:hover {
+    background-color: #eef2ff;
+}
+
+/* ================= EMPTY STATE ================= */
+.empty-state {
+    text-align: center;
+    color: #9ca3af;
+    font-size: 16px;
+    padding: 20px;
+}
+
+/* ================= GRAPHS ================= */
+#graph-section {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #e5e7eb;
+}
+
+.centered-graph {
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+}
+
+/* ================= FOOTER ================= */
+footer {
+    width: 100%;
+    text-align: center;
+    padding: 14px 0;
+    background-color: #ffffff;
+    color: #6b7280;
+    font-size: 14px;
+    border-top: 1px solid #e5e7eb;
+    margin-top: auto;
+}
+
+/* ================= RESPONSIVE ================= */
+@media (max-width: 768px) {
+    .container {
+        padding: 22px;
+    }
+
+    h1 { font-size: 26px; }
+    h2 { font-size: 20px; }
+
+    .portfolio-section {
+        flex-direction: column;
+    }
+
+    .portfolio-info {
+        grid-template-columns: 1fr;
+        font-size: 16px;
+    }
+
+    .top-right-buttons {
+        gap: 10px;
+    }
+
+    table {
+        font-size: 14px;
+    }
+}
+
+/* ================= MEDIA SAFETY ================= */
+img, svg, canvas, iframe {
+    max-width: 100%;
+    height: auto;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>Portfolio</h1>
+    <h3>Your detailed portfolio overview, including holdings and transactions</h3>
+
+    <div class="header-line"></div>
+
+    <div class="top-right-buttons">
+      <a href="{% url 'dashboard' %}">Home</a>
+      <a href="{% url 'investment_view' %}">Investment Portfolio</a>
+      <a href="{% url 'recommendations' %}">Stock Predictions</a>
+      <a href="{% url 'transaction_history' %}">Transaction History</a>
+      <a href="{% url 'logout' %}">Logout</a>
+    </div>
+
+    <div class="portfolio-section">
+
+      <!-- INFO -->
+      <div class="portfolio-info">
+        <span class="label">Opening Balance</span>
+        <span class="value">{{ portfolio.cash_balance|intcomma }}</span>
+
+        <span class="label">Invested Value</span>
+        <span class="value">{{ total_investment_value|intcomma }}</span>
+
+        <span class="label">Current Value</span>
+        <span class="value">{{ total_current_value|intcomma }}</span>
+
+        <span class="label">Profit & Loss</span>
+        <span class="value {% if total_pnl < 0 %}text-red{% elif total_pnl > 0 %}text-green{% else %}text-neutral{% endif %}">
+          {% if total_pnl > 0 %}+{% endif %}{{ total_pnl|intcomma }}
+        </span>
+
+        <span class="label">Total Stock Quantity</span>
+        <span class="value">{{ total_quantity }}</span>
+      </div>
+
+      <!-- TABLE -->
+      <div class="holdings-table">
+        <table>
+          <thead>
+            <tr>
+              <th>Stock</th>
+              <th>Qty</th>
+              <th>Invested</th>
+              <th>Current</th>
+              <th>P&amp;L</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for holding in holdings %}
+            <tr>
+              <td>{{ holding.stock_symbol }}</td>
+              <td>{{ holding.quantity }}</td>
+              <td>{{ holding.investment_value|intcomma }}</td>
+              <td>{{ holding.current_value|intcomma }}</td>
+              <td class="{% if holding.pnl < 0 %}text-red{% elif holding.pnl > 0 %}text-green{% else %}text-neutral{% endif %}">
+                {% if holding.pnl > 0 %}+{% endif %}{{ holding.pnl|intcomma }}
+              </td>
+            </tr>
+            {% empty %}
+            <tr>
+              <td colspan="5" class="empty-state">No holdings available.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- GRAPHS -->
+    <div id="graph-section">
+      <h2>Invested vs Current Value</h2>
+      {{ bar_graph_html|safe }}
+
+      <div class="header-line"></div>
+
+      <h2>Percentage Change</h2>
+      {{ line_graph_html|safe }}
+
+      <div class="header-line"></div>
+
+      <h2>Profit & Loss</h2>
+      {{ pnl_bar_chart_graph_html|safe }}
+
+      <div class="header-line"></div>
+
+      <h2>Portfolio Allocation</h2>
+      {{ invested_value_pie_graph_html|safe }}
+      {{ current_value_pie_graph_html|safe }}
+      {{ percentage_change_pie_graph_html|safe }}
+
+      <div class="header-line"></div>
+
+      <h2>Stock Quantity Distribution</h2>
+      <div class="centered-graph">
+        {{ quantity_bar_graph_html|safe }}
+      </div>
+    </div>
+</div>
+
+<footer>
+    <p>&copy; 2025 ZeroRiskTrader. All rights reserved.</p>
+    <p>Empowering Traders. Minimizing Risks.</p>
+</footer>
+
+</body>
+</html>

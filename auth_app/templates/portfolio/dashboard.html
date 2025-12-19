@@ -1,0 +1,190 @@
+{% extends 'layouts/app.html' %}
+
+{% block content %}
+
+<style>
+/* ================= RESET SAFE ================= */
+.dashboard-page {
+    min-height: calc(100vh - 60px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: #f8f9fa;
+    font-family: "Segoe UI", Arial, sans-serif;
+    padding: 30px 15px 80px;
+}
+
+/* ================= TITLES ================= */
+.page-title {
+    text-align: center;
+    font-size: 34px;
+    font-weight: 800;
+    color: #1f2937;
+    margin: 8px 0;
+}
+
+/* ================= CARD ================= */
+.dashboard-container {
+    width: 100%;
+    max-width: 520px;
+    background-color: #ffffff;
+    border-radius: 14px;
+    padding: 28px 26px;
+    box-shadow: 0 10px 35px rgba(0, 0, 0, 0.12);
+    margin-top: 25px;
+}
+
+.dashboard-container h1 {
+    text-align: center;
+    font-size: 26px;
+    margin-bottom: 22px;
+    color: #111827;
+}
+
+/* ================= BUTTONS ================= */
+.btn-container {
+    margin-bottom: 14px;
+    text-align: center;
+}
+
+.btn {
+    display: inline-block;
+    width: 100%;
+    max-width: 320px;
+    padding: 12px 18px;
+    font-size: 17px;
+    font-weight: 700;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+/* Primary CTA */
+#fourthButton {
+    background-color: #20c997;
+    color: #ffffff;
+}
+#fourthButton:hover {
+    background-color: #198754;
+    transform: translateY(-1px);
+}
+
+/* Secondary Buttons */
+#secondButton,
+#thirdButton {
+    background-color: #0056b3;
+    color: #ffffff;
+}
+#secondButton:hover,
+#thirdButton:hover {
+    background-color: #004085;
+    transform: translateY(-1px);
+}
+
+/* Logout */
+a.btn {
+    background-color: #dc3545;
+    color: #ffffff;
+}
+a.btn:hover {
+    background-color: #b02a37;
+    transform: translateY(-1px);
+}
+
+/* ================= FOOTER ================= */
+.dashboard-footer {
+    width: 100%;
+    text-align: center;
+    padding: 12px 0;
+    background-color: #ffffff;
+    color: #6b7280;
+    font-size: 14px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    border-top: 1px solid #e5e7eb;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 600px) {
+    .page-title {
+        font-size: 24px;
+    }
+
+    .dashboard-container {
+        padding: 20px;
+        border-radius: 12px;
+    }
+
+    .dashboard-container h1 {
+        font-size: 22px;
+    }
+
+    .btn {
+        font-size: 16px;
+        padding: 11px;
+        max-width: 100%;
+    }
+}
+</style>
+
+<div class="dashboard-page">
+
+    <h1 class="page-title">Welcome {{ request.user.username }}</h1>
+    <h1 class="page-title">Your Virtual Trading Platform</h1>
+
+    <div class="dashboard-container">
+        <h1>Bombay Stock Exchange (BSE)</h1>
+
+        <div class="btn-container">
+            <button onclick="location.href='{% url 'investment_view' %}'"
+                class="btn" id="fourthButton">
+                🚀 Start Investment
+            </button>
+        </div>
+
+        <div class="btn-container">
+            <button onclick="location.href='{% url 'select_symbol' %}'"
+                class="btn" id="secondButton">
+                📊 Stock Analysis
+            </button>
+        </div>
+
+        <div class="btn-container">
+            <button onclick="location.href='{% url 'platform' %}'"
+                class="btn" id="thirdButton">
+                📈 Dashboard
+            </button>
+        </div>
+
+        <div class="btn-container">
+            <button onclick="location.href='{% url 'news_dashboard' %}'"
+                class="btn" id="thirdButton">
+                📰 News Dashboard
+            </button>
+        </div>
+
+        <div class="btn-container">
+            <button onclick="location.href='{% url 'aboutus' %}'"
+                class="btn" id="thirdButton">
+                ℹ️ About Us
+            </button>
+        </div>
+
+        <div class="btn-container">
+            <a href="{% url 'logout' %}" class="btn">
+                🔒 Logout
+            </a>
+        </div>
+    </div>
+</div>
+
+<footer class="dashboard-footer">
+    <p>&copy; 2025 ZeroRiskTrader. All rights reserved.</p>
+    <p>Empowering Traders. Minimizing Risks.</p>
+</footer>
+
+{% endblock %}

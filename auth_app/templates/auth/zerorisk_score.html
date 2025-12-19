@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ZeroRiskTrader – ZeroRisk Score</title>
+
+<style>
+:root {
+  --bg: #f4f6f9;
+  --card: #ffffff;
+  --text: #111827;
+  --muted: #6b7280;
+  --border: #e5e7eb;
+
+  --green: #16a34a;
+  --yellow: #facc15;
+  --orange: #fb923c;
+  --red: #dc2626;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.container {
+  max-width: 1000px;
+  margin: 40px auto;
+  padding: 0 20px;
+}
+
+h1 {
+  font-size: 30px;
+  font-weight: 900;
+  margin-bottom: 20px;
+}
+
+/* ================= STOCK BUTTONS ================= */
+
+.stock-buttons {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 30px;
+}
+
+.stock-buttons button {
+  padding: 10px 18px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.stock-buttons button:hover {
+  background: #eef2ff;
+}
+
+/* ================= CARD ================= */
+
+.card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 26px;
+  box-shadow: 0 15px 40px rgba(0,0,0,.1);
+  margin-bottom: 24px;
+  display: none;
+}
+
+/* ================= SCORE ================= */
+
+.score-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 30px;
+}
+
+.score-circle {
+  width: 140px;
+  height: 140px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-weight: 900;
+  font-size: 36px;
+  color: #fff;
+}
+
+.score-label {
+  font-size: 13px;
+  font-weight: 700;
+  margin-top: -6px;
+}
+
+.low { background: var(--green); }
+.moderate { background: var(--yellow); color: #000; }
+.caution { background: var(--orange); }
+.high { background: var(--red); }
+
+/* ================= METRICS ================= */
+
+.metrics {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+  margin-top: 22px;
+}
+
+.metric {
+  background: #f9fafb;
+  border-radius: 12px;
+  padding: 14px;
+  border: 1px solid var(--border);
+}
+
+.metric span {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.metric strong {
+  display: block;
+  margin-top: 4px;
+  font-size: 16px;
+}
+
+/* ================= AI BOX ================= */
+
+.ai-box {
+  margin-top: 30px;
+}
+
+.ai-title {
+  font-size: 18px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.ai-content {
+  background: #f9fafb;
+  border-radius: 14px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  line-height: 1.7;
+  font-size: 15px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+/* ================= RESPONSIVE ================= */
+
+@media (max-width: 700px) {
+  .score-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .metrics {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+  <h1>🧠 ZeroRisk Score</h1>
+
+  <!-- STOCK BUTTONS -->
+  <div class="stock-buttons">
+    <button onclick="loadZeroRisk('TCS.BSE')">TCS</button>
+    <button onclick="loadZeroRisk('RELIANCE.BSE')">RELIANCE</button>
+    <button onclick="loadZeroRisk('HDFCBANK.BSE')">HDFCBANK</button>
+    <button onclick="loadZeroRisk('BHARTIARTL.BSE')">BHARTIARTL</button>
+    <button onclick="loadZeroRisk('ICICIBANK.BSE')">ICICIBANK</button>
+  </div>
+
+  <!-- RESULT CARD -->
+  <div class="card" id="resultCard">
+
+    <div class="score-wrapper">
+      <div id="scoreCircle" class="score-circle">
+        <div id="scoreValue">0</div>
+        <div class="score-label">/ 100</div>
+      </div>
+
+      <div>
+        <h2 id="stockName"></h2>
+        <p id="riskLabel" style="font-weight:800"></p>
+      </div>
+    </div>
+
+    <!-- METRICS -->
+    <div class="metrics">
+      <div class="metric">
+        <span>📈 Price Trend</span>
+        <strong id="trend"></strong>
+      </div>
+
+      <div class="metric">
+        <span>⚠️ Volatility</span>
+        <strong id="volatility"></strong>
+      </div>
+
+      <div class="metric">
+        <span>📊 20 DMA</span>
+        <strong id="dma20"></strong>
+      </div>
+
+      <div class="metric">
+        <span>📊 50 DMA</span>
+        <strong id="dma50"></strong>
+      </div>
+    </div>
+
+    <!-- AI EXPLANATION -->
+    <div class="ai-box">
+      <div class="ai-title">🤖 ZeroRiskTrader AI Explanation</div>
+      <div id="aiText" class="ai-content"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+function loadZeroRisk(stock) {
+  fetch(`/auth/ai/full-stock-analysis/?stock=${stock}`)
+    .then(res => {
+      if (!res.ok) throw new Error("API Error");
+      return res.json();
+    })
+    .then(data => {
+      const zr = data.zero_risk;
+
+      document.getElementById("resultCard").style.display = "block";
+      document.getElementById("stockName").innerText = data.stock;
+
+      document.getElementById("scoreValue").innerText = zr.score;
+      document.getElementById("riskLabel").innerText = zr.label;
+
+      document.getElementById("trend").innerText = zr.trend.toUpperCase();
+      document.getElementById("volatility").innerText = zr.volatility + "%";
+      document.getElementById("dma20").innerText = zr.dma_20;
+      document.getElementById("dma50").innerText = zr.dma_50;
+
+      document.getElementById("aiText").innerHTML =
+        data.ai_explanation
+          .replace(/\n/g, "<br>")
+          .replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+
+      const circle = document.getElementById("scoreCircle");
+      circle.className = "score-circle";
+
+      if (zr.score >= 80) circle.classList.add("low");
+      else if (zr.score >= 60) circle.classList.add("moderate");
+      else if (zr.score >= 40) circle.classList.add("caution");
+      else circle.classList.add("high");
+    })
+    .catch(() => {
+      alert("Unable to load ZeroRisk data");
+    });
+}
+</script>
+
+</body>
+</html>

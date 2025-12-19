@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Analysis</title>
+    <style>
+        /* Basic reset and styling for the body */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa; /* Light grey background */
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Ensure the body takes full height */
+        }
+
+        /* Container styling for centering content */
+        .container {
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+            position: relative;
+            flex: 1; /* Ensure it takes available space */
+        }
+
+        /* Main heading styling */
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+            color: #333;
+        }
+
+        /* Styling for the buttons in the top-right corner */
+        .top-right-buttons {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .top-right-buttons a {
+            padding: 10px 15px;
+            font-size: 16px;
+            color: white;
+            background-color: #007bff; /* Blue button */
+            border-radius: 5px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center; /* Center align text in the button */
+        }
+
+        .top-right-buttons a:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        /* Dropdown and buttons container */
+        .dropdown-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 30px;
+        }
+
+        /* Styling the dropdown */
+        .dropdown {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            width: 300px;
+        }
+
+        /* Styling the submit button */
+        .dropdown-submit {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff; /* Blue button */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        /* Button hover effect */
+        .dropdown-submit:hover {
+            background-color: #0056b3; /* Darker blue on hover */
+        }
+
+        /* Disabled button styling */
+        .dropdown-submit:disabled {
+            background-color: #c0c0c0;
+            cursor: not-allowed;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            /* Stack the top-right buttons vertically on small screens */
+            .top-right-buttons {
+                position: relative;
+                top: auto;
+                right: auto;
+                display: block;
+                margin-bottom: 15px;
+                gap: 5px;
+            }
+
+            /* Adjust dropdown and button width on smaller screens */
+            .dropdown {
+                width: 100%;
+                max-width: 250px;
+            }
+
+            .dropdown-submit {
+                width: 100%;
+                max-width: 250px;
+            }
+
+            h1 {
+                font-size: 28px; /* Smaller header size on mobile */
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 24px; /* Further reduce header size for very small screens */
+            }
+
+            .dropdown {
+                font-size: 14px; /* Reduce font size for dropdown */
+            }
+
+            .dropdown-submit {
+                font-size: 14px; /* Reduce font size for button */
+            }
+        }
+
+        /* Footer Styling */
+        footer {
+            background-color: #f8f9fa; /* Light grey */
+            color: #333; /* Dark text color */
+            text-align: center;
+            padding: 15px 0;
+            margin-top: auto; /* Push footer to the bottom */
+            font-size: 14px;
+        }
+
+        footer p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Stock Analysis</h1>
+        <div class="top-right-buttons">
+            <a href="{% url 'dashboard' %}" class="btn">Home</a>
+            <a href="{% url 'logout' %}" class="btn">Logout</a>
+        </div>
+
+        <!-- Dropdown for selecting stock symbol -->
+        <div class="dropdown-container">
+            <form method="POST" action="{% url 'stock_analysis' %}" id="stock-form" style="display: inline;">
+                {% csrf_token %}
+                <label for="stock_symbol">Select Stock Symbol:</label>
+                <select id="stock_symbol" name="stock_symbol" class="dropdown">
+                    <option value="">-- Select a stock --</option>
+                    <option value="RELIANCE.BSE">RELIANCE.BSE</option>
+                    <option value="HDFCBANK.BSE">HDFCBANK.BSE</option>
+                    <option value="TCS.BSE">TCS.BSE</option>
+                    <option value="BHARTIARTL.BSE">BHARTIARTL.BSE</option>
+                    <option value="ICICIBANK.BSE">ICICIBANK.BSE</option>
+                </select>
+                <button type="submit" id="analyze-stock" class="dropdown-submit" disabled>Analyze Stock</button>
+            </form>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 ZeroRiskTrader. All rights reserved.</p>
+        <p>Empowering Traders. Minimizing Risks.</p>
+    </footer>
+
+    <script>
+        // Get references to the dropdown and submit button
+        const stockSymbolDropdown = document.getElementById('stock_symbol');
+        const analyzeStockButton = document.getElementById('analyze-stock');
+
+        // Add an event listener to monitor changes in the dropdown
+        stockSymbolDropdown.addEventListener('change', function() {
+            // Enable the button if a stock is selected, otherwise disable it
+            if (stockSymbolDropdown.value) {
+                analyzeStockButton.disabled = false;
+            } else {
+                analyzeStockButton.disabled = true;
+            }
+        });
+    </script>
+
+</body>
+</html>

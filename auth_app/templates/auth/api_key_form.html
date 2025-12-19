@@ -1,0 +1,224 @@
+<head>
+    <style>
+        /* General styling for the body */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Styling for the form container */
+        .form-container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 450px;
+            text-align: left;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 25px;
+            font-size: 24px;
+            color: #333;
+            text-align: center;
+        }
+
+        /* Styling for form elements */
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 16px;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 12px;
+            margin: 15px 0;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus {
+            border-color: #007bff;
+            outline: none;
+        }
+
+        /* Styling for the submit button */
+        button {
+            padding: 12px;
+            border: none;
+            background-color: #007bff;
+            color: white;
+            font-size: 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        /* Styling for the link */
+        a {
+            color: #007bff;
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Style for the instructional text */
+        p {
+            font-size: 15px;
+            color: #666;
+            margin: 5px 0 10px;
+            line-height: 1.6;
+        }
+
+        /* Style for messages */
+        .messages {
+            margin: 10px 0;
+            padding: 0;
+            list-style: none;
+        }
+
+        .messages li {
+            padding: 12px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .messages li.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .messages li.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Align messages to the left */
+        .messages {
+            text-align: left;
+        }
+
+        /* Footer styling */
+        footer {
+            text-align: center;
+            font-size: 14px;
+            color: #777;
+            padding: 10px 0;
+        }
+
+        /* Mobile Responsive Styles */
+        @media (max-width: 768px) {
+            .form-container {
+                padding: 20px;
+                width: 80%;
+            }
+
+            h2 {
+                font-size: 20px;
+            }
+
+            input[type="text"] {
+                font-size: 14px;
+            }
+
+            button {
+                font-size: 14px;
+                padding: 10px;
+            }
+
+            p {
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .form-container {
+                padding: 15px;
+                width: 90%;
+            }
+
+            h2 {
+                font-size: 18px;
+            }
+
+            input[type="text"] {
+                font-size: 12px;
+                padding: 10px;
+            }
+
+            button {
+                font-size: 12px;
+                padding: 10px;
+            }
+
+            p {
+                font-size: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="form-container">
+        <h2>Alpha Vantage API</h2>
+        <form method="POST" action="{% url 'save_api_key' %}">
+            {% csrf_token %}
+
+            <p style="margin: 20px 0;">
+                <label for="get-api-key">
+                    <a href="https://www.alphavantage.co/support/#api-key" target="_blank">
+                        Click here to create your free Alpha Vantage API key
+                    </a>
+                </label><br>
+                Once you get your API key, simply copy it and paste it below to kickstart your exciting paper trading journey with <strong>ZeroRiskTrader</strong>!
+            </p>
+
+            <p>
+                <label for="api_key">Enter your API key</label>
+                <input type="text" id="api_key" name="api_key" placeholder="e.g. X336SWL7RFUYUZJP"
+                       pattern="[A-Z0-9]{16}" title="Your API key should be 16 uppercase letters or numbers" required>
+            </p>
+
+            <p>Your API key should be 16 uppercase letters or numbers.</p>
+
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="{{ message.tags }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <button type="submit">Submit API Key</button>
+        </form>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 ZeroRiskTrader. All rights reserved.</p>
+        <p>Empowering Traders. Minimizing Risks.</p>
+    </footer>
+</body>
