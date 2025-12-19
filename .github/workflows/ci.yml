@@ -3,10 +3,10 @@ name: Django CI/CD
 on:
   push:
     branches:
-      - main          # Run CI on push to main
+      - develop          # Run CI on push to main
   pull_request:
     branches:
-      - develop       # Run CI on PRs to develop
+      - main       # Run CI on PRs to develop
 
 jobs:
   build:
