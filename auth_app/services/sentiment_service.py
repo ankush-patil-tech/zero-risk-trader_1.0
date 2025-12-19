@@ -1,4 +1,5 @@
-from .azure_openai_client import client
+from .azure_openai_client import get_azure_openai_client
+
 import json
 import os
 
@@ -28,7 +29,7 @@ Return ONLY valid JSON:
   "reason": "short explanation"
 }}
 """
-
+    client = get_azure_openai_client()
     response = client.chat.completions.create(
         model=os.getenv("AZURE_OPENAI_DEPLOYMENT"),  # ✅ CORRECT
         messages=[
@@ -76,7 +77,7 @@ Rules:
 - Calm and factual
 - Capital protection first
 """
-
+    client = get_azure_openai_client()
     response = client.chat.completions.create(
         model=os.getenv("AZURE_OPENAI_DEPLOYMENT"),  # ✅ FIXED HERE
         messages=[
@@ -140,7 +141,7 @@ RULES:
 - Focus on capital protection
 - Beginner friendly
 """
-
+    client = get_azure_openai_client()
     response = client.chat.completions.create(
         model=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
         messages=[
@@ -226,7 +227,7 @@ def summarize_ml_findings(stock, best_model, performance, news=None):
     - Avoid technical jargon
     - Prefer numbers over adjectives
     """
-
+    client = get_azure_openai_client()
     response = client.chat.completions.create(
         model=os.getenv("AZURE_OPENAI_DEPLOYMENT"),
         messages=[
