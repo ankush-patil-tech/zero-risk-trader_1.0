@@ -10,11 +10,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Set working directory
 WORKDIR /app
 
-# Install only required system packages
+# Install required system packages
 RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
     ca-certificates \
     libssl-dev \
     libffi-dev \
+    default-libmysqlclient-dev \
     curl \
  && mkdir -p /usr/local/share/ca-certificates/extra \
  && rm -rf /var/lib/apt/lists/*
@@ -36,6 +38,17 @@ COPY . .
 
 # Expose application port
 EXPOSE 8000
-# Run Django with Gunicorn
-CMD ["sh", "-c", "python manage.py migrate --noinput && python manage.py collectstatic --noinput && gunicorn auth_project.wsgi:application --workers=1 --threads=1 --timeout=300 --bind 0.0.0.0:${PORT:-8000} --access-logfile - --error-logfile - --log-level info"]
- 
+
+# Run Django (migrate + collectstatic + gunicorn)
+CMD ["sh", "-c", "\
+python manage.py migrate --noinput && \
+python manage.py collectstatic --noinput && \
+gunicorn auth_project.wsgi:application \
+  --workers=1 \
+  --threads=1 \
+  --timeout=300 \
+  --bind 0.0.0.0:${PORT:-8000} \
+  --access-logfile - \
+  --error-logfile - \
+  --log-level info \
+"]
