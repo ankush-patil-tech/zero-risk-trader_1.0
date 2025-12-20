@@ -50,13 +50,6 @@ import logging
 import warnings
 from django.shortcuts import render
 from auth_app.forms import HyperparameterForm
-from django.contrib import messages
-from django.contrib.auth.models import User
-from django.shortcuts import redirect
-from django.utils.http import urlsafe_base64_decode
-from django.utils.encoding import force_str
-from django.contrib.auth.tokens import default_token_generator
-
 
 warnings.filterwarnings("ignore")
 logger = logging.getLogger(__name__)
@@ -133,12 +126,71 @@ import traceback
 from django.http import HttpResponseServerError
 
 
+#
+# def login_view(request):
+#     try:
+#         print("Login view triggered!")
+#
+#         if request.user.is_authenticated:
+#             print("👤 User already authenticated, redirecting to dashboard.")
+#             return redirect('dashboard')
+#
+#         if request.method == 'POST':
+#             form = AuthenticationForm(request, data=request.POST)
+#
+#             if form.is_valid():
+#                 user = form.get_user()
+#                 print(f"✅ User '{user.username}' logged in successfully")
+#
+#                 login(request, user)
+#
+#                 user_profile, created = UserProfile.objects.get_or_create(user=user)
+#
+#                 today = now().date()
+#
+#                 # ⛔ SAFETY: isolate risky external call
+#                 if user_profile.last_data_fetch_date != today:
+#                     try:
+#                         print("📥 Fetching new data for user...")
+#                         fetch_and_save_user_data(request)
+#                         store_news_for_user(user)
+#                         user_profile.last_data_fetch_date = today
+#                         user_profile.save()
+#                     except Exception:
+#                         print("🔥 ERROR inside fetch_and_save_user_data")
+#                         print(traceback.format_exc())
+#                         # DO NOT crash login
+#                         messages.warning(
+#                             request,
+#                             "Logged in, but data fetch failed. Try again later."
+#                         )
+#
+#                 if user_profile.api_key:
+#                     print("🔑 API Key found. Redirecting to dashboard.")
+#                     return redirect('dashboard')
+#
+#                 print("🚫 No API Key. Redirecting to Save API Key form.")
+#                 return redirect('save_api_key')
+#
+#             else:
+#                 print("❌ Invalid credentials")
+#                 messages.error(request, "Invalid username or password.")
+#
+#         else:
+#             form = AuthenticationForm()
+#
+#         return render(request, 'auth/login.html', {'form': form})
+#
+#     except Exception:
+#         print("🔥 FATAL LOGIN ERROR")
+#         print(traceback.format_exc())
+#         return HttpResponseServerError("Internal Server Error")
+# #
 def login_view(request):
     try:
         print("Login view triggered!")
 
         if request.user.is_authenticated:
-            print("👤 User already authenticated, redirecting to dashboard.")
             return redirect('dashboard')
 
         if request.method == 'POST':
@@ -146,41 +198,19 @@ def login_view(request):
 
             if form.is_valid():
                 user = form.get_user()
-                print(f"✅ User '{user.username}' logged in successfully")
-
                 login(request, user)
 
                 user_profile, created = UserProfile.objects.get_or_create(user=user)
 
-                today = now().date()
+                # 🚦 ONLY ROUTING LOGIC HERE
+                if not user_profile.api_key:
+                    print("🚫 No API Key → redirecting to API activation")
+                    return redirect('save_api_key')
 
-                # ⛔ SAFETY: isolate risky external call
-                if user_profile.last_data_fetch_date != today:
-                    try:
-                        print("📥 Fetching new data for user...")
-                        fetch_and_save_user_data(request)
-                        store_news_for_user(user)
-                        user_profile.last_data_fetch_date = today
-                        user_profile.save()
-                    except Exception:
-                        print("🔥 ERROR inside fetch_and_save_user_data")
-                        print(traceback.format_exc())
-                        # DO NOT crash login
-                        messages.warning(
-                            request,
-                            "Logged in, but data fetch failed. Try again later."
-                        )
+                print("🔑 API Key exists → redirecting to dashboard")
+                return redirect('dashboard')
 
-                if user_profile.api_key:
-                    print("🔑 API Key found. Redirecting to dashboard.")
-                    return redirect('dashboard')
-
-                print("🚫 No API Key. Redirecting to Save API Key form.")
-                return redirect('save_api_key')
-
-            else:
-                print("❌ Invalid credentials")
-                messages.error(request, "Invalid username or password.")
+            messages.error(request, "Invalid username or password.")
 
         else:
             form = AuthenticationForm()
@@ -192,6 +222,66 @@ def login_view(request):
         print(traceback.format_exc())
         return HttpResponseServerError("Internal Server Error")
 
+
+# from django.contrib.auth import login
+# from django.contrib.auth.forms import AuthenticationForm
+# from django.shortcuts import redirect, render
+# from django.http import HttpResponseServerError
+# from django.utils.timezone import now
+# import traceback
+#
+# def login_view(request):
+#     try:
+#         print("Login view triggered!")
+#
+#         if request.user.is_authenticated:
+#             return redirect('dashboard')
+#
+#         if request.method == 'POST':
+#             form = AuthenticationForm(request, data=request.POST)
+#
+#             if form.is_valid():
+#                 user = form.get_user()
+#                 login(request, user)
+#
+#                 user_profile, _ = UserProfile.objects.get_or_create(user=user)
+#
+#                 # 🚫 If API key missing → onboarding
+#                 if not user_profile.api_key:
+#                     print("🚫 No API Key → redirecting to API activation")
+#                     return redirect('save_api_key')
+#
+#                 # ✅ API key exists → SAFE daily fetch
+#                 today = now().date()
+#                 if user_profile.last_data_fetch_date != today:
+#                     try:
+#                         print("📥 Fetching new data for user...")
+#                         fetch_and_save_user_data(request)
+#                         user_profile.last_data_fetch_date = today
+#                         user_profile.save()
+#                     except Exception as e:
+#                         print("⚠️ Data fetch failed during login")
+#                         print(traceback.format_exc())
+#                         # ⚠️ DO NOT block login
+#                         messages.warning(
+#                             request,
+#                             "Logged in, but data refresh failed. Showing last available data."
+#                         )
+#
+#                 print("🔑 Login complete → redirecting to dashboard")
+#                 return redirect('dashboard')
+#
+#             messages.error(request, "Invalid username or password.")
+#
+#         else:
+#             form = AuthenticationForm()
+#
+#         return render(request, 'auth/login.html', {'form': form})
+#
+#     except Exception:
+#         print("🔥 FATAL LOGIN ERROR")
+#         print(traceback.format_exc())
+#         return HttpResponseServerError("Internal Server Error")
 
 # Registration view
 def register_view(request):
@@ -243,104 +333,68 @@ def send_verification_email(user, request):
     send_mail(
         subject,
         plain_message,
-        EMAIL_HOST_USER,  # Use a valid sender's email
+        settings.DEFAULT_FROM_EMAIL,
         [user.email],
         html_message=html_message,
+        fail_silently=False,
     )
 
     print("Verification email sent.")
 
 
-
 def verify_email(request, uidb64, token):
     try:
+        # Decode the user ID from the base64 encoded string
         uid = force_str(urlsafe_base64_decode(uidb64))
         user = User.objects.get(pk=uid)
+
+        # Debugging: Log the UID and Token
+        logger.debug(f"UID: {uidb64}, Token: {token}")
+
+        # Check if the token is valid for the user
+        if default_token_generator.check_token(user, token):
+            # Mark email as verified and activate the account
+            user_profile = getattr(user, 'profile', None)
+
+            if user_profile:
+                user_profile.email_verified = True  # Assuming you have an 'email_verified' field in Profile model
+                user_profile.save()
+            else:
+                logger.error(f"User profile not found for user {user.pk}")
+                messages.error(request, 'Profile not found for this user.')
+                return redirect('register')
+
+            user.is_active = True
+            user.save()
+
+            # Show success message
+            messages.success(request, 'Email verified successfully! Please log in.')
+            return redirect('login')  # Redirect to login after successful email verification
+        else:
+            # Token is invalid or expired
+            messages.error(request, 'Invalid or expired verification link.')
+            return redirect('register')
+
     except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
+        # Handle cases where the token is invalid, user doesn't exist, or decoding failed
         logger.error(f"Email verification error: {e}")
-        messages.error(request, "Invalid verification link.")
-        return redirect("register")
+        messages.error(request, 'Invalid verification link.')
+        return redirect('register')
 
-    # Token validation
-    if not default_token_generator.check_token(user, token):
-        messages.error(request, "Verification link expired or invalid.")
-        return redirect("register")
 
-    # If already active → safe exit
-    if user.is_active:
-        messages.info(request, "Account already activated. Please log in.")
-        return redirect("login")
+def activate_view(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = get_user_model().objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
+        user = None
 
-    # Activate user
-    user.is_active = True
-    user.save()
-
-    # OPTIONAL: profile handling (SAFE)
-    user_profile = getattr(user, "profile", None)
-    if user_profile:
-        user_profile.email_verified = True
-        user_profile.save()
+    if user is not None and default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return redirect('login')
     else:
-        # Do NOT fail activation if profile missing
-        logger.warning(f"Profile missing for user {user.pk}, skipping profile update")
-
-    messages.success(request, "Email verified successfully! Please log in.")
-    return redirect("login")
-
-
-# def verify_email(request, uidb64, token):
-#     try:
-#         # Decode the user ID from the base64 encoded string
-#         uid = force_str(urlsafe_base64_decode(uidb64))
-#         user = User.objects.get(pk=uid)
-
-#         # Debugging: Log the UID and Token
-#         logger.debug(f"UID: {uidb64}, Token: {token}")
-
-#         # Check if the token is valid for the user
-#         if default_token_generator.check_token(user, token):
-#             # Mark email as verified and activate the account
-#             user_profile = getattr(user, 'profile', None)
-
-#             if user_profile:
-#                 user_profile.email_verified = True  # Assuming you have an 'email_verified' field in Profile model
-#                 user_profile.save()
-#             else:
-#                 logger.error(f"User profile not found for user {user.pk}")
-#                 messages.error(request, 'Profile not found for this user.')
-#                 return redirect('register')
-
-#             user.is_active = True
-#             user.save()
-
-#             # Show success message
-#             messages.success(request, 'Email verified successfully! Please log in.')
-#             return redirect('login')  # Redirect to login after successful email verification
-#         else:
-#             # Token is invalid or expired
-#             messages.error(request, 'Invalid or expired verification link.')
-#             return redirect('register')
-
-#     except (TypeError, ValueError, OverflowError, User.DoesNotExist) as e:
-#         # Handle cases where the token is invalid, user doesn't exist, or decoding failed
-#         logger.error(f"Email verification error: {e}")
-#         messages.error(request, 'Invalid verification link.')
-#         return redirect('register')
-
-
-# def activate_view(request, uidb64, token):
-#     try:
-#         uid = urlsafe_base64_decode(uidb64).decode()
-#         user = get_user_model().objects.get(pk=uid)
-#     except (TypeError, ValueError, OverflowError, get_user_model().DoesNotExist):
-#         user = None
-
-#     if user is not None and default_token_generator.check_token(user, token):
-#         user.is_active = True
-#         user.save()
-#         return redirect('login')
-#     else:
-#         return render(request, 'auth/activation_failed.html')
+        return render(request, 'auth/activation_failed.html')
 
 
 def email_verification_sent_view(request):
@@ -376,31 +430,67 @@ def fetch_and_save_user_data(request):
         print(f"❌ Error while fetching/saving data: {e}")
 
 
+#
+# @login_required
+# def save_api_key(request):
+#     if request.method == 'POST':
+#         api_key = request.POST.get('api_key')
+#
+#         if api_key:
+#             user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+#             # Debugging: Print to check the UserProfile before saving the API key
+#             print(f"UserProfile before saving API key: {user_profile.api_key}")
+#
+#             user_profile.api_key = api_key
+#             user_profile.save()
+#
+#             # Send email with the API key
+#             send_api_key_email(request.user.email, api_key)
+#
+#             messages.success(request, 'API key saved successfully and emailed to you!')
+#             # to get all the data
+#             # jason_db(request)
+#             # fetch_and_store_stock_data(request)
+#             # fetch_and_save_user_data(request)
+#
+#             return redirect('dashboard')  # Redirect to your dashboard
+#         else:
+#             messages.error(request, 'API key is required.')
+#
+#     return render(request, 'auth/api_key_form.html')
+
 @login_required
 def save_api_key(request):
     if request.method == 'POST':
         api_key = request.POST.get('api_key')
 
-        if api_key:
-            user_profile, created = UserProfile.objects.get_or_create(user=request.user)
-            # Debugging: Print to check the UserProfile before saving the API key
-            print(f"UserProfile before saving API key: {user_profile.api_key}")
-
-            user_profile.api_key = api_key
-            user_profile.save()
-
-            # Send email with the API key
-            send_api_key_email(request.user.email, api_key)
-
-            messages.success(request, 'API key saved successfully and emailed to you!')
-            # to get all the data
-            # jason_db(request)
-            # fetch_and_store_stock_data(request)
-            # fetch_and_save_user_data(request)
-
-            return redirect('dashboard')  # Redirect to your dashboard
-        else:
+        if not api_key:
             messages.error(request, 'API key is required.')
+            return redirect('save_api_key')
+
+        user_profile, created = UserProfile.objects.get_or_create(user=request.user)
+
+        user_profile.api_key = api_key
+        user_profile.save()
+
+        # 📥 FETCH DATA ONLY AFTER API KEY IS SAVED
+        try:
+            fetch_and_save_user_data(request)
+            store_news_for_user(request.user)
+            user_profile.last_data_fetch_date = now().date()
+            user_profile.save()
+        except Exception:
+            print("🔥 ERROR fetching data after API key submission")
+            print(traceback.format_exc())
+            messages.warning(
+                request,
+                "API key saved, but data fetch failed. You can retry from dashboard."
+            )
+
+        send_api_key_email(request.user.email, api_key)
+
+        messages.success(request, 'API key saved successfully!')
+        return redirect('dashboard')
 
     return render(request, 'auth/api_key_form.html')
 
@@ -440,9 +530,22 @@ def symbol_selection_news(request):
     return render(request, 'stocks_analysis/select_symbol_news.html')
 
 
+# @login_required
+# def dashboard_view(request):
+#     Portfolio.objects.get_or_create(user=request.user)
+#     return render(request, 'portfolio/dashboard.html')
 @login_required
 def dashboard_view(request):
+    # Always ensure profile exists
+    user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    # 🚫 Block dashboard until API key is set
+    if not user_profile.api_key:
+        return redirect('save_api_key')
+
+    # Create portfolio ONLY after API key exists
     Portfolio.objects.get_or_create(user=request.user)
+
     return render(request, 'portfolio/dashboard.html')
 
 
@@ -469,7 +572,7 @@ def get_stock_file(request):
     try:
         # Fetch and process data for all stocks
         result = fetch_and_store_stock_data(request)
-
+        print(result)
         if len(result) != 10:
             raise ValueError(f"Expected 10 dataframes, got {len(result)}")
 
@@ -978,52 +1081,66 @@ def meta_df_columns(df):
 
 
 def fetch_and_process_data_all_stock(request):
-    # Fetch the JSON data (assuming `fetch_jason_db_data` retrieves the JSON data)
     json_data = fetch_jason_db_data(request)
 
-    # Convert the JSON data to a DataFrame and reset the index for easier processing
     df = pd.DataFrame.from_dict(json_data).T.reset_index().rename(columns={'index': 'Symbols'})
-    df.index = df.index + 1  # Adjust index to start from 1
+    df.index = df.index + 1
 
-    # Initialize dictionaries to store the stock data and metadata
     symbol_dfs = {}
     meta_symbol_dfs = {}
 
-    # Process each row in the DataFrame
+    # -----------------------------
+    # 1️⃣ POPULATE DICTIONARIES
+    # -----------------------------
     for _, row in df.iterrows():
         symbol = row['Symbols']
         time_series_data = row.get('Time Series (Daily)', {})
         meta_data = row.get('Meta Data', {})
 
-        # Check if the time series data and meta data exist
         if not time_series_data or not meta_data:
-            print(f"Warning: Missing data for {symbol}")
-            continue
+            raise ValueError(f"Incomplete DB data for {symbol}")
 
-        # Process the time series data into a DataFrame
         time_series_df = pd.DataFrame.from_dict(time_series_data, orient='index')
         time_series_df.index = pd.to_datetime(time_series_df.index)
         time_series_df = time_series_df.sort_index(ascending=False)
         symbol_dfs[symbol] = time_series_df
 
-        # Process the metadata into a DataFrame
         meta_df = pd.DataFrame.from_dict(meta_data, orient='index')
         meta_symbol_dfs[symbol] = meta_df
 
-    # Map the symbols to the respective DataFrames
-    bhartiartl_df = symbol_dfs.get('BHARTIARTL.BSE')
-    hdfcbank_df = symbol_dfs.get('HDFCBANK.BSE')
-    icicibank_df = symbol_dfs.get('ICICIBANK.BSE')
-    reliance_df = symbol_dfs.get('RELIANCE.BSE')
-    tcs_df = symbol_dfs.get('TCS.BSE')
+    # -----------------------------
+    # 2️⃣ ADD REQUIRED SYMBOL CHECK HERE  ✅
+    # -----------------------------
+    required_symbols = [
+        'BHARTIARTL.BSE',
+        'ICICIBANK.BSE',
+        'RELIANCE.BSE',
+        'TCS.BSE',
+        'HDFCBANK.BSE',
+    ]
 
-    bhartiartl_meta_df = meta_symbol_dfs.get('BHARTIARTL.BSE')
-    hdfcbank_meta_df = meta_symbol_dfs.get('HDFCBANK.BSE')
-    icicibank_meta_df = meta_symbol_dfs.get('ICICIBANK.BSE')
-    reliance_meta_df = meta_symbol_dfs.get('RELIANCE.BSE')
-    tcs_meta_df = meta_symbol_dfs.get('TCS.BSE')
+    for sym in required_symbols:
+        if sym not in symbol_dfs or sym not in meta_symbol_dfs:
+            raise ValueError(f"Missing processed data for {sym}")
 
-    # Apply additional processing functions
+    # -----------------------------
+    # 3️⃣ SAFE EXTRACTION
+    # -----------------------------
+    bhartiartl_df = symbol_dfs['BHARTIARTL.BSE']
+    hdfcbank_df = symbol_dfs['HDFCBANK.BSE']
+    icicibank_df = symbol_dfs['ICICIBANK.BSE']
+    reliance_df = symbol_dfs['RELIANCE.BSE']
+    tcs_df = symbol_dfs['TCS.BSE']
+
+    bhartiartl_meta_df = meta_symbol_dfs['BHARTIARTL.BSE']
+    hdfcbank_meta_df = meta_symbol_dfs['HDFCBANK.BSE']
+    icicibank_meta_df = meta_symbol_dfs['ICICIBANK.BSE']
+    reliance_meta_df = meta_symbol_dfs['RELIANCE.BSE']
+    tcs_meta_df = meta_symbol_dfs['TCS.BSE']
+
+    # -----------------------------
+    # 4️⃣ POST-PROCESSING (SAFE)
+    # -----------------------------
     bhartiartl_df = df_columns(bhartiartl_df)
     icicibank_df = df_columns(icicibank_df)
     reliance_df = df_columns(reliance_df)
@@ -1042,9 +1159,87 @@ def fetch_and_process_data_all_stock(request):
     store_stock_data(request, 'TCS.BSE', tcs_df)
     store_stock_data(request, 'HDFCBANK.BSE', hdfcbank_df)
 
-    return (bhartiartl_df, bhartiartl_meta_df, icicibank_df, icicibank_meta_df,
-            reliance_df, reliance_meta_df, tcs_df, tcs_meta_df,
-            hdfcbank_df, hdfcbank_meta_df)
+    return (
+        bhartiartl_df, bhartiartl_meta_df,
+        icicibank_df, icicibank_meta_df,
+        reliance_df, reliance_meta_df,
+        tcs_df, tcs_meta_df,
+        hdfcbank_df, hdfcbank_meta_df
+    )
+
+
+#
+# def fetch_and_process_data_all_stock(request):
+#     # Fetch the JSON data (assuming `fetch_jason_db_data` retrieves the JSON data)
+#     json_data = fetch_jason_db_data(request)
+#
+#     # Convert the JSON data to a DataFrame and reset the index for easier processing
+#     df = pd.DataFrame.from_dict(json_data).T.reset_index().rename(columns={'index': 'Symbols'})
+#     df.index = df.index + 1  # Adjust index to start from 1
+#
+#     # Initialize dictionaries to store the stock data and metadata
+#     symbol_dfs = {}
+#     meta_symbol_dfs = {}
+#
+#     # Process each row in the DataFrame
+#     for _, row in df.iterrows():
+#         symbol = row['Symbols']
+#         time_series_data = row.get('Time Series (Daily)', {})
+#         meta_data = row.get('Meta Data', {})
+#
+#         # Check if the time series data and meta data exist
+#         # if not time_series_data or not meta_data:
+#         #     print(f"Warning: Missing data for {symbol}")
+#         #     continue
+#         if not time_series_data or not meta_data:
+#             raise ValueError(f"Incomplete DB data for {symbol}")
+#
+#         # Process the time series data into a DataFrame
+#         time_series_df = pd.DataFrame.from_dict(time_series_data, orient='index')
+#         time_series_df.index = pd.to_datetime(time_series_df.index)
+#         time_series_df = time_series_df.sort_index(ascending=False)
+#         symbol_dfs[symbol] = time_series_df
+#
+#         # Process the metadata into a DataFrame
+#         meta_df = pd.DataFrame.from_dict(meta_data, orient='index')
+#         meta_symbol_dfs[symbol] = meta_df
+#
+#     # Map the symbols to the respective DataFrames
+#     bhartiartl_df = symbol_dfs.get('BHARTIARTL.BSE')
+#     hdfcbank_df = symbol_dfs.get('HDFCBANK.BSE')
+#     icicibank_df = symbol_dfs.get('ICICIBANK.BSE')
+#     reliance_df = symbol_dfs.get('RELIANCE.BSE')
+#     tcs_df = symbol_dfs.get('TCS.BSE')
+#
+#     bhartiartl_meta_df = meta_symbol_dfs.get('BHARTIARTL.BSE')
+#     hdfcbank_meta_df = meta_symbol_dfs.get('HDFCBANK.BSE')
+#     icicibank_meta_df = meta_symbol_dfs.get('ICICIBANK.BSE')
+#     reliance_meta_df = meta_symbol_dfs.get('RELIANCE.BSE')
+#     tcs_meta_df = meta_symbol_dfs.get('TCS.BSE')
+#
+#     # Apply additional processing functions
+#     bhartiartl_df = df_columns(bhartiartl_df)
+#     icicibank_df = df_columns(icicibank_df)
+#     reliance_df = df_columns(reliance_df)
+#     tcs_df = df_columns(tcs_df)
+#     hdfcbank_df = df_columns(hdfcbank_df)
+#
+#     bhartiartl_meta_df = meta_df_columns(bhartiartl_meta_df)
+#     hdfcbank_meta_df = meta_df_columns(hdfcbank_meta_df)
+#     icicibank_meta_df = meta_df_columns(icicibank_meta_df)
+#     reliance_meta_df = meta_df_columns(reliance_meta_df)
+#     tcs_meta_df = meta_df_columns(tcs_meta_df)
+#
+#     store_stock_data(request, 'BHARTIARTL.BSE', bhartiartl_df)
+#     store_stock_data(request, 'ICICIBANK.BSE', icicibank_df)
+#     store_stock_data(request, 'RELIANCE.BSE', reliance_df)
+#     store_stock_data(request, 'TCS.BSE', tcs_df)
+#     store_stock_data(request, 'HDFCBANK.BSE', hdfcbank_df)
+#     print(bhartiartl_df)
+#     print(bhartiartl_meta_df)
+#     return (bhartiartl_df, bhartiartl_meta_df, icicibank_df, icicibank_meta_df,
+#             reliance_df, reliance_meta_df, tcs_df, tcs_meta_df,
+#             hdfcbank_df, hdfcbank_meta_df)
 
 
 def store_stock_data(request, stock_name, stock_df):
@@ -1685,6 +1880,7 @@ def run_sentiment(request):
         "message": "Sentiment analysis started in background"
     })
 
+
 from django.db.models import Max
 from django.shortcuts import render
 from auth_app.models import StockNewsSentiment
@@ -1714,6 +1910,7 @@ def sentiment_dashboard(request):
     return render(request, "auth/sentiment_dashboard.html", {
         "records": records
     })
+
 
 # @login_required
 # def sentiment_dashboard(request):
