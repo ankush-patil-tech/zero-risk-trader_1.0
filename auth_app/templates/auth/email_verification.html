@@ -2,94 +2,77 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Email Verification - ZeroRiskTrader</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #f4f4f4;
-      padding: 20px;
-      color: #333;
-    }
-
-    .container {
-      background-color: #fff;
-      padding: 30px;
-      border-radius: 8px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-      width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
-      display: flex;
-      flex-direction: column;
-      min-height: 500px;
-      justify-content: space-between;
-    }
-
-    h2 {
-      color: #333;
-      text-align: center;
-      margin-bottom: 20px;
-    }
-
-    p {
-      font-size: 16px;
-      line-height: 1.5;
-      color: #555;
-      margin-bottom: 15px;
-    }
-
-    a {
-      color: #007bff;
-      text-decoration: none;
-      font-weight: bold;
-    }
-
-    a:hover {
-      text-decoration: underline;
-    }
-
-    .cta-button {
-      display: inline-block;
-      background-color: #007bff;
-      color: #fff;
-      padding: 12px 24px;
-      text-align: center;
-      border-radius: 6px;
-      margin: 20px 0;
-      text-decoration: none;
-      font-size: 16px;
-    }
-
-    .cta-button:hover {
-      background-color: #0056b3;
-    }
-
-    footer {
-      text-align: center;
-      font-size: 13px;
-      color: #777;
-      margin-top: 30px;
-    }
-  </style>
+  <title>Verify Your Email – ZeroRiskTrader</title>
 </head>
-<body>
-  <div class="container">
-    <div>
-      <h2>Verify Your Email Address</h2>
-      <p>Hi {{ user.username }},</p>
-      <p>Thank you for signing up with <strong>ZeroRiskTrader</strong>! Please click the button below to verify your email and activate your account:</p>
-      <p>
-        <a href="{{ link }}" class="cta-button">Verify Email</a>
-      </p>
-      <p>Once verified, you will receive <strong>₹10,00,000 virtual credits</strong> in your account to start your paper trading journey risk-free!</p>
-      <p>If you did not create an account with us, you can safely ignore this email.</p>
-    </div>
+<body style="margin:0; padding:0; background-color:#f4f4f4; font-family:Arial, sans-serif;">
 
-    <footer>
-      <p>&copy; 2025 ZeroRiskTrader. All rights reserved.</p>
-      <p>Empowering Traders. Minimizing Risks.</p>
-    </footer>
-  </div>
+  <!-- Outer wrapper -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f4f4f4; padding:20px;">
+    <tr>
+      <td align="center">
+
+        <!-- Email container -->
+        <table width="600" cellpadding="0" cellspacing="0" style="background-color:#ffffff; border-radius:8px; padding:30px;">
+
+          <!-- Header -->
+          <tr>
+            <td align="center" style="padding-bottom:20px;">
+              <h2 style="margin:0; color:#111827;">Verify Your Email Address</h2>
+            </td>
+          </tr>
+
+          <!-- Body -->
+          <tr>
+            <td style="color:#374151; font-size:15px; line-height:1.6;">
+              <p style="margin-top:0;">Hi {{ user.username }},</p>
+
+              <p>
+                Thank you for creating an account with <strong>ZeroRiskTrader</strong>.
+                To complete your registration, please confirm your email address by clicking the button below.
+              </p>
+
+              <!-- CTA -->
+              <p style="text-align:center; margin:30px 0;">
+                <a href="{{ link }}"
+                   style="background-color:#2563eb;
+                          color:#ffffff;
+                          padding:12px 22px;
+                          text-decoration:none;
+                          border-radius:6px;
+                          font-size:15px;
+                          display:inline-block;">
+                  Verify Email Address
+                </a>
+              </p>
+
+              <p>
+                Once your email is verified, your account will be activated and you can start using the platform.
+              </p>
+
+              <p>
+                If you did not create this account, you can safely ignore this email.
+              </p>
+
+              <p style="margin-bottom:0;">
+                Regards,<br>
+                <strong>ZeroRiskTrader Team</strong>
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="padding-top:30px; text-align:center; font-size:12px; color:#6b7280;">
+              <p style="margin:0;">© 2025 ZeroRiskTrader. All rights reserved.</p>
+              <p style="margin:5px 0 0;">Empowering Traders. Minimizing Risks.</p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
 </body>
 </html>
