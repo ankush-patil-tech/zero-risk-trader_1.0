@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>About Us | ZeroRiskTrader</title>
+
   <style>
     body {
       font-family: 'Poppins', sans-serif;
@@ -12,6 +13,7 @@
       padding: 0;
       color: #333;
     }
+
     .container {
       max-width: 1000px;
       margin: 50px auto;
@@ -21,54 +23,44 @@
       border-radius: 12px;
       position: relative;
     }
+
     h1, h2 {
       color: #0d6efd;
       margin-bottom: 20px;
     }
+
     h3 {
       color: #0d6efd;
       text-align: center;
       margin-bottom: 20px;
     }
+
     p {
-      font-size: 18px;
-      line-height: 1.7;
-      margin-bottom: 20px;
+      font-size: 17px;
+      line-height: 1.75;
+      margin-bottom: 18px;
     }
+
     ul, ol {
-      font-size: 18px;
+      font-size: 17px;
       margin-bottom: 20px;
       padding-left: 20px;
+      line-height: 1.7;
     }
+
     li {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
+
     a {
       color: #0d6efd;
       text-decoration: none;
     }
+
     a:hover {
       text-decoration: underline;
     }
-    .contact {
-      background-color: #e9f5ff;
-      padding: 25px;
-      border-radius: 8px;
-      margin-top: 40px;
-      text-align: center;
-    }
-    .tagline {
-      text-align: center;
-      margin-top: 40px;
-      font-weight: bold;
-      font-size: 22px;
-      color: #555;
-    }
-    hr {
-      border: none;
-      border-top: 2px solid #dee2e6;
-      margin: 40px 0;
-    }
+
     .top-right-buttons {
       position: absolute;
       top: 30px;
@@ -76,33 +68,76 @@
       display: flex;
       gap: 10px;
     }
+
     .top-right-buttons a {
       padding: 10px 15px;
-      font-size: 16px;
+      font-size: 15px;
       color: white;
       background-color: #007bff;
       border-radius: 5px;
       text-decoration: none;
       transition: background-color 0.3s ease;
     }
+
     .top-right-buttons a:hover {
       background-color: #0056b3;
     }
+
+    hr {
+      border: none;
+      border-top: 2px solid #dee2e6;
+      margin: 40px 0;
+    }
+
+    /* Disclaimer */
+    .disclaimer {
+      background-color: #fff7e6;
+      border-left: 5px solid #ffc107;
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 40px;
+    }
+
+    .disclaimer p {
+      font-size: 15.5px;
+      color: #7a5200;
+      margin-bottom: 10px;
+    }
+
+    /* Contact */
+    .contact {
+      background-color: #e9f5ff;
+      padding: 25px;
+      border-radius: 8px;
+      margin-top: 40px;
+      text-align: center;
+    }
+
+    .tagline {
+      text-align: center;
+      margin-top: 40px;
+      font-weight: bold;
+      font-size: 21px;
+      color: #555;
+    }
+
     footer {
-    width: 100%;
-    text-align: center;
-    padding: 15px 0;
-    background-color: #ffffff;
-    color: #777;
-    font-size: 14px;
-    margin-top: auto;
-}
+      width: 100%;
+      text-align: center;
+      padding: 15px 0;
+      background-color: #ffffff;
+      color: #777;
+      font-size: 14px;
+      margin-top: 40px;
+    }
+
     /* Mobile Responsive */
     @media (max-width: 768px) {
       .container {
         margin: 20px;
         padding: 20px;
       }
+
       .top-right-buttons {
         position: static;
         justify-content: center;
@@ -115,6 +150,7 @@
 <body>
 
 <div class="container">
+
   <div class="top-right-buttons">
     <a href="{% url 'dashboard' %}">Home</a>
     <a href="{% url 'logout' %}">Logout</a>
@@ -124,51 +160,80 @@
 
   <p><strong>Empowering Future Traders — One Risk-Free Trade at a Time</strong></p>
 
-  <p>At <strong>ZeroRiskTrader</strong>, we are redefining how aspiring traders step into the world of financial markets.
-  Our platform offers a <strong>real-time paper trading experience</strong>, allowing users to simulate buying and selling stocks without risking a single rupee.</p>
+  <p>
+    At <strong>ZeroRiskTrader</strong>, we are redefining how aspiring traders step into the world of financial markets.
+    Our platform offers a <strong>real-time paper trading experience</strong>, allowing users to simulate buying and selling
+    stocks without risking real money.
+  </p>
 
   <h2>Why We Exist</h2>
-  <p>In the world of trading, experience is everything — but gaining that experience often comes at a cost.
-  We created ZeroRiskTrader to eliminate that barrier. Here, you can <strong>practice, experiment, and master</strong> trading strategies with <strong>live market data</strong> — all in a <strong>zero-risk environment</strong>.</p>
+  <p>
+    In the world of trading, experience is everything — but gaining that experience often comes at a cost.
+    ZeroRiskTrader was created to remove that barrier by offering a safe environment to practice,
+    learn, and grow using live market data.
+  </p>
 
   <h2>What You Can Do on ZeroRiskTrader</h2>
   <ul>
-    <li>Practice trading with virtual funds.</li>
-    <li>Test your strategies against real-time market movements.</li>
-    <li>Track your progress with detailed performance insights.</li>
-    <li>Build your skills and confidence — before stepping into real-world trading.</li>
+    <li>Practice trading using virtual funds.</li>
+    <li>Test strategies against real-time market movements.</li>
+    <li>Track performance and trading behavior.</li>
+    <li>Build confidence before entering real-world markets.</li>
   </ul>
 
   <h2>Our Mission</h2>
-  <p>We believe that <strong>knowledge and practice</strong> should come before risk.
-  ZeroRiskTrader empowers everyone — from absolute beginners to seasoned learners — to <strong>build trading expertise fearlessly</strong>.</p>
+  <p>
+    We believe <strong>knowledge and practice must come before risk</strong>.
+    Our mission is to empower users with hands-on experience and data-driven learning
+    in a completely risk-free environment.
+  </p>
 
   <h2>Your Journey Starts Here</h2>
   <ol>
-    <li>Create your free account in seconds.</li>
-    <li>Verify your email address through the confirmation link sent to you.</li>
-    <li>Log in securely to your account.</li>
-    <li>Enter your personal API key from <strong>Alpha Vantage</strong> (free to get).</li>
-    <li>Get instant access to your personal trading dashboard.</li>
-    <li>Start trading in live markets with virtual funds — zero real-world risk!</li>
+    <li>Create your free account.</li>
+    <li>Verify your email address.</li>
+    <li>Log in securely.</li>
+    <li>Add your personal <strong>Alpha Vantage API key</strong>.</li>
+    <li>Access your personal trading dashboard.</li>
+    <li>Start trading with virtual funds.</li>
   </ol>
+
+  <!-- DISCLAIMER -->
+  <div class="disclaimer">
+    <h3>Important Disclaimer</h3>
+    <p>
+      ZeroRiskTrader is <strong>only a learning and simulation platform</strong>.
+      All stock prices, insights, and signals displayed on the platform are generated using
+      <strong>AI / ML models</strong> and third-party market data sources.
+    </p>
+    <p>
+      <strong>Actual market prices, executions, and outcomes may differ</strong>
+      from AI-generated suggestions due to market volatility, delays, and external factors.
+    </p>
+    <p>
+      ZeroRiskTrader <strong>does not provide financial advice</strong> and
+      is <strong>not responsible for real trading decisions</strong> made based on the platform.
+    </p>
+  </div>
 
   <hr>
 
   <div class="contact">
     <h3>Contact Us</h3>
-    <p>Have questions, feedback, or just want to say hello?<br>We’d love to hear from you!</p>
-    <p>📩 Email us at: <a href="mailto:zerorisktrader@gmail.com">zerorisktrader@gmail.com</a></p>
+    <p>Have questions, feedback, or suggestions?</p>
+    <p>📩 <a href="mailto:zerorisktrader@gmail.com">zerorisktrader@gmail.com</a></p>
   </div>
 
   <div class="tagline">
     Zero Risk. Real Experience. True Growth.<br>
-    Welcome to the future of learning to trade.
+    Learn Smart. Trade Confidently.
   </div>
-<footer>
+
+  <footer>
     <p>&copy; 2025 ZeroRiskTrader. All rights reserved.</p>
     <p>Empowering Traders. Minimizing Risks.</p>
-</footer>
+  </footer>
+
 </div>
 
 </body>
