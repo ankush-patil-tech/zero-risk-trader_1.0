@@ -74,15 +74,14 @@ if USE_AZURE_MYSQL:
 # ===============================================================
 # EMAIL (PRODUCTION SAFE)
 # ===============================================================
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_TIMEOUT = 10  # seconds
-EMAIL_HOST_USER = env("EMAIL_HOST_USER")
-EMAIL_HOST_PASSWORD = env("EMAIL_HOST_PASSWORD")
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-# DEFAULT_FROM_EMAIL=zerorisktrader.app@gmail.com
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")
+DEFAULT_FROM_EMAIL = "ZeroRiskTrader <zerorisktrader.app@gmail.com>"
+EMAIL_TIMEOUT = 10
 # ===============================================================
 # AUTH
 # ===============================================================
