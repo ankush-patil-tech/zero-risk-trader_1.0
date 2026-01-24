@@ -6,172 +6,156 @@
 
 <style>
 :root {
-  --bg: #f4f7fb;
-  --card: #ffffff;
-  --text: #1f2a44;
-  --border: #e5e7eb;
-  --blue: #0057c2;
-  --green: #16a34a;
-  --yellow: #facc15;
-  --red: #dc2626;
+  --bg:#f4f7fb;
+  --card:#ffffff;
+  --text:#1f2a44;
+  --border:#e5e7eb;
+  --blue:#2563eb;
+  --green:#16a34a;
+  --yellow:#f59e0b;
+  --red:#dc2626;
 }
 
-* {
-  box-sizing: border-box;
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:"Segoe UI",system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
 
-body {
-  margin: 0;
-  font-family: "Segoe UI", system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+.page{padding:40px}
+
+/* ================= HEADER ================= */
+.header-card{
+  background:#fff;
+  border-radius:22px;
+  padding:24px 36px 32px;
+  box-shadow:0 25px 60px rgba(0,0,0,.08);
+  margin-bottom:50px;
 }
 
-/* ================= PAGE ================= */
-
-.page {
-  padding: 40px 30px;
+.header-top{
+  display:flex;
+  justify-content:flex-end;
+  gap:14px;
 }
 
-/* ================= HEADER CARD ================= */
-
-.header-card {
-  background: var(--card);
-  border-radius: 18px;
-  padding: 20px 32px 28px;
-  box-shadow: 0 25px 60px rgba(0,0,0,0.08);
-  margin-bottom: 50px;
+.header-top a{
+  background:var(--blue);
+  color:#fff;
+  text-decoration:none;
+  padding:10px 22px;
+  font-weight:700;
+  border-radius:10px;
 }
 
-/* ================= TOP BUTTON ROW ================= */
-
-.header-top {
-  display: flex;
-  justify-content: flex-end;
-  gap: 14px;
+.header-title{
+  margin-top:24px;
+  text-align:center;
+  font-size:30px;
+  font-weight:900;
 }
 
-/* NAV BUTTONS */
-.header-top a {
-  background: var(--blue);
-  color: #fff;
-  text-decoration: none;
-  padding: 10px 22px;
-  font-weight: 700;
-  border-radius: 8px;
-  font-size: 15px;
-  box-shadow: 0 8px 18px rgba(0,0,0,0.18);
-  transition: all 0.25s ease;
+/* ================= CONTENT ================= */
+.container{
+  max-width:1050px;
+  margin:auto;
 }
 
-.header-top a:hover {
-  transform: translateY(-2px);
-  opacity: 0.95;
+/* STOCK BUTTONS */
+.stock-buttons{
+  display:flex;
+  justify-content:center;
+  gap:16px;
+  flex-wrap:wrap;
+  margin-bottom:40px;
 }
 
-/* ================= TITLE ================= */
-
-.header-title {
-  margin-top: 22px;
-  text-align: center;
-  font-size: 30px;        /* REDUCED SIZE */
-  font-weight: 900;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 12px;
+.stock-buttons button{
+  padding:12px 28px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:#fff;
+  font-weight:800;
+  cursor:pointer;
+  transition:.2s;
 }
 
-/* ================= MAIN CONTENT ================= */
-
-.container {
-  max-width: 1000px;
-  margin: 0 auto;
+.stock-buttons button:hover{
+  background:#eef2ff;
 }
 
-/* ================= STOCK BUTTONS ================= */
-
-.stock-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  flex-wrap: wrap;
-  margin-bottom: 40px;
+/* ================= MAIN CARD ================= */
+.card{
+  background:#fff;
+  border-radius:28px;
+  padding:36px;
+  box-shadow:0 30px 70px rgba(0,0,0,.12);
+  display:none;
 }
 
-.stock-buttons button {
-  padding: 12px 26px;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  background: #ffffff;
-  font-weight: 800;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(0,0,0,0.06);
+.stock-title{
+  font-size:26px;
+  font-weight:900;
+  margin-bottom:10px;
 }
 
-.stock-buttons button:hover {
-  background: #eef2ff;
-  border-color: var(--blue);
+/* RISK BADGE */
+.risk-badge{
+  display:inline-block;
+  padding:6px 18px;
+  border-radius:999px;
+  font-size:13px;
+  font-weight:900;
+  margin-bottom:22px;
 }
 
-/* ================= AI CARD ================= */
+.risk-low{background:#dcfce7;color:var(--green)}
+.risk-medium{background:#fef3c7;color:#92400e}
+.risk-high{background:#fee2e2;color:var(--red)}
 
-.card {
-  background: var(--card);
-  border-radius: 26px;
-  padding: 32px;
-  box-shadow: 0 25px 60px rgba(0,0,0,.12);
-  display: none;
+/* ================= AI GRID ================= */
+.ai-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:20px;
 }
 
-.stock-title {
-  font-size: 24px;
-  font-weight: 900;
-  margin-bottom: 12px;
+.ai-card{
+  background:#f9fafb;
+  border-radius:18px;
+  padding:20px 22px;
+  border:1px solid var(--border);
 }
 
-/* ================= RISK BADGE ================= */
-
-.risk-badge {
-  display: inline-block;
-  padding: 6px 16px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 900;
-  margin-bottom: 20px;
+.ai-card h4{
+  margin:0 0 8px;
+  font-size:15px;
+  font-weight:900;
+  color:#2563eb;
 }
 
-.risk-high { background: #fee2e2; color: var(--red); }
-.risk-medium { background: #fef3c7; color: #92400e; }
-.risk-low { background: #dcfce7; color: var(--green); }
-
-/* ================= AI CONTENT ================= */
-
-.ai-box {
-  background: #f9fafb;
-  border-radius: 16px;
-  padding: 22px;
-  border: 1px solid var(--border);
-  line-height: 1.8;
-  font-size: 15px;
+.ai-card p{
+  margin:0;
+  font-size:14.5px;
+  line-height:1.6;
 }
 
-.loading {
-  font-weight: 800;
-  color: #6b7280;
+.ai-full{
+  grid-column:1 / -1;
 }
 
-/* ================= RESPONSIVE ================= */
+.loading{
+  font-weight:800;
+  color:#6b7280;
+}
 
-@media (max-width: 900px) {
-  .header-top {
-    justify-content: center;
-    flex-wrap: wrap;
-  }
-
-  .header-title {
-    font-size: 24px;
-  }
+/* MOBILE */
+@media(max-width:850px){
+  .ai-grid{grid-template-columns:1fr}
+  .header-title{font-size:24px}
 }
 </style>
 </head>
@@ -180,25 +164,16 @@ body {
 
 <div class="page">
 
-  <!-- HEADER -->
   <div class="header-card">
-
-    <!-- TOP RIGHT BUTTONS -->
     <div class="header-top">
       <a href="{% url 'dashboard' %}">Home</a>
       <a href="{% url 'platform' %}">Dashboard</a>
       <a href="{% url 'recommendations' %}">Visualizations</a>
       <a href="{% url 'logout' %}">Logout</a>
     </div>
-
-    <!-- CENTER TITLE BELOW -->
-    <div class="header-title">
-      📊 ZeroRiskTrader AIML Summary
-    </div>
-
+    <div class="header-title">📊 ZeroRiskTrader AI-ML Explanation</div>
   </div>
 
-  <!-- MAIN CONTENT -->
   <div class="container">
 
     <div class="stock-buttons">
@@ -212,48 +187,66 @@ body {
     <div class="card" id="aiCard">
       <div class="stock-title" id="stockTitle"></div>
       <div id="riskBadge"></div>
-      <div id="aiText" class="ai-box"></div>
+      <div id="aiContent" class="ai-grid"></div>
     </div>
 
   </div>
 </div>
 
 <script>
-function extractRisk(text) {
-  if (text.includes("**HIGH**")) return "HIGH";
-  if (text.includes("**MEDIUM**")) return "MEDIUM";
-  if (text.includes("**LOW**")) return "LOW";
-  return null;
-}
+function getAiSummary(stock){
 
-function formatAiText(text) {
-  return text
-    .replace(/### (.*)/g, "<h3>$1</h3>")
-    .replace(/- (.*)/g, "<li>$1</li>")
-    .replace(/(<li>.*<\/li>)/gs, "<ul>$1</ul>");
-}
-
-function getAiSummary(stock) {
-  document.getElementById("aiCard").style.display = "block";
-  document.getElementById("stockTitle").innerText =
-    stock + " – AI Explanation";
-  document.getElementById("aiText").innerHTML =
-    "<div class='loading'>Analyzing ML models…</div>";
-  document.getElementById("riskBadge").innerHTML = "";
+  document.getElementById("aiCard").style.display="block";
+  document.getElementById("stockTitle").innerText = stock + " – AI Explanation";
+  document.getElementById("riskBadge").innerHTML="";
+  document.getElementById("aiContent").innerHTML =
+    "<div class='loading'>Analyzing ML performance and risk…</div>";
 
   fetch(`/auth/ai/ml-summary/?stock=${stock}`)
-    .then(res => res.json())
-    .then(data => {
-      const risk = extractRisk(data.ai_summary);
-      if (risk) {
-        document.getElementById("riskBadge").innerHTML =
-          `<span class="risk-badge risk-${risk.toLowerCase()}">${risk} RISK</span>`;
+    .then(r=>r.json())
+    .then(data=>{
+
+      const text = data.ai_summary || "";
+
+      if(!text){
+        document.getElementById("aiContent").innerText =
+          "No AI summary available.";
+        return;
       }
-      document.getElementById("aiText").innerHTML =
-        formatAiText(data.ai_summary);
+
+      // Risk badge
+      if(text.includes("HIGH"))
+        document.getElementById("riskBadge").innerHTML =
+          "<span class='risk-badge risk-high'>HIGH RISK</span>";
+      else if(text.includes("MEDIUM"))
+        document.getElementById("riskBadge").innerHTML =
+          "<span class='risk-badge risk-medium'>MEDIUM RISK</span>";
+      else if(text.includes("LOW"))
+        document.getElementById("riskBadge").innerHTML =
+          "<span class='risk-badge risk-low'>LOW RISK</span>";
+
+      // Split into sections
+      const sections = text.split("###").filter(Boolean);
+
+      let html = "";
+
+      sections.forEach(s=>{
+        const lines = s.trim().split("\n").filter(Boolean);
+        const title = lines[0];
+        const content = lines.slice(1).join(" ");
+
+        html += `
+          <div class="ai-card ${title.includes("Suggested") ? "ai-full" : ""}">
+            <h4>${title}</h4>
+            <p>${content}</p>
+          </div>
+        `;
+      });
+
+      document.getElementById("aiContent").innerHTML = html;
     })
-    .catch(() => {
-      document.getElementById("aiText").innerText =
+    .catch(()=>{
+      document.getElementById("aiContent").innerText =
         "Unable to load AI summary.";
     });
 }
