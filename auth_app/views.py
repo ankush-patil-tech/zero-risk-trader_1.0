@@ -1,8 +1,13 @@
+import json
 from datetime import datetime, date
 from decimal import Decimal
-import matplotlib
+# from urllib import request
 
-from .news_sentement.news_data_fetch import store_news_for_user
+import matplotlib
+from dateutil.utils import today
+from django.contrib.messages import get_messages
+from .services.news_fetcher import store_news_for_user
+# from .news_sentement.news_data_fetch import store_news_for_user
 from .services.news_processing import process_news_for_user
 
 matplotlib.use('Agg')  # must be set before importing pyplot
@@ -125,7 +130,6 @@ User = get_user_model()  # Get the user model in case you're using a custom user
 import traceback
 from django.http import HttpResponseServerError
 
-
 #
 # def login_view(request):
 #     try:
@@ -185,42 +189,75 @@ from django.http import HttpResponseServerError
 #         print("🔥 FATAL LOGIN ERROR")
 #         print(traceback.format_exc())
 #         return HttpResponseServerError("Internal Server Error")
-# #
-def login_view(request):
-    try:
-        print("Login view triggered!")
+# # ###################################################below code is working#######
+# def login_view(request):
+#     try:
+#         print("Login view triggered!")
+#
+#         if request.user.is_authenticated:
+#             return redirect('dashboard')
+#
+#         if request.method == 'POST':
+#             form = AuthenticationForm(request, data=request.POST)
+#
+#             if form.is_valid():
+#                 user = form.get_user()
+#                 login(request, user)
+#
+#                 user_profile, created = UserProfile.objects.get_or_create(user=user)
+#                 user_profile.last_data_fetch_date = today
+#                 user_profile.save()
+#                 # 🚦 ONLY ROUTING LOGIC HERE
+#                 if not user_profile.api_key:
+#                     print("🚫 No API Key → redirecting to API activation")
+#                     return redirect('save_api_key')
+#
+#                 print("🔑 API Key exists → redirecting to dashboard")
+#                 return redirect('dashboard')
+#
+#             messages.error(request, "Invalid username or password.")
+#
+#         else:
+#             form = AuthenticationForm()
+#
+#         return render(request, 'auth/login.html', {'form': form})
+#
+#     except Exception:
+#         print("🔥 FATAL LOGIN ERROR")
+#         print(traceback.format_exc())
+#         return HttpResponseServerError("Internal Server Error")
 
-        if request.user.is_authenticated:
+from datetime import date
+
+
+def login_view(request):
+    if request.user.is_authenticated:
+        return redirect('dashboard')
+
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+
+            profile, _ = UserProfile.objects.get_or_create(user=user)
+
+            today = date.today()
+
+            # ✅ decide only
+            if profile.last_data_fetch_date != today:
+                request.session["fetch_data"] = True
+            else:
+                request.session["fetch_data"] = False
+
+            if not profile.api_key:
+                return redirect('save_api_key')
+
             return redirect('dashboard')
 
-        if request.method == 'POST':
-            form = AuthenticationForm(request, data=request.POST)
-
-            if form.is_valid():
-                user = form.get_user()
-                login(request, user)
-
-                user_profile, created = UserProfile.objects.get_or_create(user=user)
-
-                # 🚦 ONLY ROUTING LOGIC HERE
-                if not user_profile.api_key:
-                    print("🚫 No API Key → redirecting to API activation")
-                    return redirect('save_api_key')
-
-                print("🔑 API Key exists → redirecting to dashboard")
-                return redirect('dashboard')
-
-            messages.error(request, "Invalid username or password.")
-
-        else:
-            form = AuthenticationForm()
-
-        return render(request, 'auth/login.html', {'form': form})
-
-    except Exception:
-        print("🔥 FATAL LOGIN ERROR")
-        print(traceback.format_exc())
-        return HttpResponseServerError("Internal Server Error")
+    form = AuthenticationForm()
+    return render(request, 'auth/login.html', {'form': form})
 
 
 # from django.contrib.auth import login
@@ -295,7 +332,10 @@ def register_view(request):
             user.save()
 
             # Send verification email
+            # send_verification_email(user, request)
+            print("🔥 ABOUT TO CALL send_verification_email")
             send_verification_email(user, request)
+            print("🔥 FINISHED send_verification_email")
 
             # Redirect to email verification sent page
             return redirect('email_verification_sent')
@@ -316,9 +356,11 @@ def send_verification_email(user, request):
     print(f"UID: {uidb64}, Token: {token}")
 
     # Construct the verification URL
-    domain = get_current_site(request).domain
-    verification_link = reverse('activate', kwargs={'uidb64': uidb64, 'token': token})
+    # domain = get_current_site(request).domain
+    domain = request.get_host()
+    # verification_link = reverse('activate', kwargs={'uidb64': uidb64, 'token': token})
 
+    verification_link = f"/auth/activate/{uidb64}/{token}/"
     full_link = f"http://{domain}{verification_link}"
 
     # Debugging: Print the full link
@@ -421,10 +463,17 @@ class CustomPasswordResetCompleteView(PasswordResetCompleteView):
     template_name = 'registration/password_reset_complete.html'
 
 
-def fetch_and_save_user_data(request):
+# def fetch_and_save_user_data(request):
+#     try:
+#         jason_db(request)
+#         fetch_and_store_stock_data(request)
+#         print("✅ Data fetching and storing completed successfully.")
+#     except Exception as e:
+#         print(f"❌ Error while fetching/saving data: {e}")
+def fetch_and_save_user_data(user):
     try:
-        jason_db(request)
-        fetch_and_store_stock_data(request)
+        jason_db(user)
+        fetch_and_store_stock_data(user)
         print("✅ Data fetching and storing completed successfully.")
     except Exception as e:
         print(f"❌ Error while fetching/saving data: {e}")
@@ -475,7 +524,7 @@ def save_api_key(request):
 
         # 📥 FETCH DATA ONLY AFTER API KEY IS SAVED
         try:
-            fetch_and_save_user_data(request)
+            fetch_and_save_user_data(request.user)
             store_news_for_user(request.user)
             user_profile.last_data_fetch_date = now().date()
             user_profile.save()
@@ -534,17 +583,56 @@ def symbol_selection_news(request):
 # def dashboard_view(request):
 #     Portfolio.objects.get_or_create(user=request.user)
 #     return render(request, 'portfolio/dashboard.html')
+# @login_required
+# def dashboard_view(request):
+#     # Always ensure profile exists
+#     user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
+#
+#     # 🚫 Block dashboard until API key is set
+#     if not user_profile.api_key:
+#         return redirect('save_api_key')
+#
+#     # Create portfolio ONLY after API key exists
+#     Portfolio.objects.get_or_create(user=request.user)
+#
+#     return render(request, 'portfolio/dashboard.html')
+
+from datetime import date
+from django.contrib import messages
+
+
 @login_required
 def dashboard_view(request):
-    # Always ensure profile exists
+    # ✅ CLEAR OLD MESSAGES FIRST
+    storage = get_messages(request)
+    for _ in storage:
+        pass
     user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
-    # 🚫 Block dashboard until API key is set
     if not user_profile.api_key:
         return redirect('save_api_key')
 
-    # Create portfolio ONLY after API key exists
     Portfolio.objects.get_or_create(user=request.user)
+
+    today = date.today()
+
+    # 🔄 First login of the day
+    if user_profile.last_data_fetch_date != today:
+
+        messages.info(request, "⏳ Fetching latest stock data...")
+
+        jason_db(request.user)
+
+        user_profile.last_data_fetch_date = today
+        user_profile.save()
+
+        messages.success(request, "✅ Latest stock data fetched successfully.")
+
+    else:
+        messages.success(
+            request,
+            "📊 Latest data already fetched today."
+        )
 
     return render(request, 'portfolio/dashboard.html')
 
@@ -571,7 +659,7 @@ def get_stock_file(request):
 
     try:
         # Fetch and process data for all stocks
-        result = fetch_and_store_stock_data(request)
+        result = fetch_and_store_stock_data(request.user)
         print(result)
         if len(result) != 10:
             raise ValueError(f"Expected 10 dataframes, got {len(result)}")
@@ -608,6 +696,62 @@ def get_stock_file(request):
     else:
         # If the symbol doesn't match any known stock, raise an exception
         raise ValueError(f"Unknown stock symbol: {symbol}")
+
+
+# def get_stock_file(request):
+#     if request.method != 'POST':
+#         return HttpResponseBadRequest("Invalid request method.")
+#
+#     symbol = request.POST.get('stock_symbol', 'TCS.BSE').strip().upper()
+#
+#     print(f"Symbol from request: {symbol}")
+#
+#     try:
+#         user = User.objects.get(id=request.user.id)
+#         result = fetch_and_store_stock_data(user)
+#
+#         (
+#             bharti_df, bharti_meta,
+#             icici_df, icici_meta,
+#             reliance_df, reliance_meta,
+#             tcs_df, tcs_meta,
+#             hdfc_df, hdfc_meta
+#         ) = result
+#
+#     except Exception as e:
+#         print("UI ERROR:", e)
+#         return render(
+#             request,
+#             "portfolio/investment.html",
+#             {"error": "Unable to load stock data"}
+#         )
+#
+#     stock_data = {
+#         "TCS.BSE": (tcs_meta, tcs_df),
+#         "RELIANCE.BSE": (reliance_meta, reliance_df),
+#         "HDFCBANK.BSE": (hdfc_meta, hdfc_df),
+#         "BHARTIARTL.BSE": (bharti_meta, bharti_df),
+#         "ICICIBANK.BSE": (icici_meta, icici_df),
+#     }
+#
+#     if symbol not in stock_data:
+#         return render(
+#             request,
+#             "portfolio/investment.html",
+#             {"error": f"Unknown stock symbol: {symbol}"}
+#         )
+#
+#     meta_df, price_df = stock_data[symbol]
+#
+#     return render(
+#         request,
+#         "portfolio/stock_analysis.html",
+#         {
+#             "symbol": symbol,
+#             "meta_df": meta_df.to_dict(orient="records"),
+#             "price_df": price_df.to_dict(orient="records"),
+#         }
+#     )
 
 
 def stock_dataframe(request):
@@ -976,75 +1120,196 @@ def transaction_history_view(request):
     return render(request, 'stocks_analysis/transaction_history.html', context)
 
 
-@login_required
-def jason_db(request):
-    function = ["TIME_SERIES_DAILY"]
-    symbol = ["TCS.BSE", "RELIANCE.BSE", "HDFCBANK.BSE", "BHARTIARTL.BSE", "ICICIBANK.BSE"]
+import time
+from datetime import datetime
 
-    # Initialize a list to hold messages
-    messages_list = []
-    for i in range(len(symbol)):
-        # Call the function that fetches, processes, and stores the data
-        json_data, error_message = get_daily_time_series(function, symbol[i])
-        if error_message:
-            messages_list.append(error_message)  # Collect error messages
-            continue  # Continue to the next symbol instead of breaking
 
-        # json_data = load_json_from_file('stock_data.json')
+def jason_db(user):
+    function = "TIME_SERIES_DAILY"
 
-        # Extract the stock symbol from the Meta Data
+    symbols = [
+        "TCS.BSE",
+        "RELIANCE.BSE",
+        "HDFCBANK.BSE",
+        "BHARTIARTL.BSE",
+        "ICICIBANK.BSE",
+    ]
+
+    errors = []
+
+    for sym in symbols:
+        print(f"Fetching {sym}...")
+
+        json_data = get_daily_time_series(function, sym)
+
+        if json_data is None:
+            errors.append(sym)
+            print(f"⚠ Skipped {sym} due to API limit")
+            time.sleep(15)
+            continue
+
         stock_symbol = json_data["Meta Data"]["2. Symbol"]
         last_refresh = json_data["Meta Data"]["3. Last Refreshed"]
-        last_refresh_data = datetime.strptime(last_refresh, '%Y-%m-%d').date()
-        meta_data = json_data
-        user = request.user
+        last_refresh_date = datetime.strptime(last_refresh, "%Y-%m-%d").date()
 
-        # Save the data in the database, ensuring to handle updates or duplicates
         StockJason.objects.update_or_create(
             user=user,
-            last_refresh_data=last_refresh_data,
             stock_name=stock_symbol,
-            defaults={'meta_data': meta_data}
+            defaults={
+                "meta_data": json_data,
+                "last_refresh_data": last_refresh_date
+            }
         )
 
-        # Print a success message only if at least one symbol was processed successfully
-    if messages_list:
-        for msg in messages_list:
-            messages.error(request, msg)  # Use Django messages framework for displaying
+        print(f"✅ Stored {stock_symbol}")
 
-    print("Stock Data successfully saved to the database.")
-    return render(request, 'auth/api_key_form.html', {'message': messages})
+        # Alpha Vantage free-tier safety
+        time.sleep(15)
+
+    print("\n✅ Stock JSON data saving completed.")
+
+    if errors:
+        print("⚠️ Failed symbols:", errors)
 
 
-@login_required
-def fetch_jason_db_data(request):
+# def jason_db(user):
+#     function = ["TIME_SERIES_DAILY"]
+#     symbol = ["TCS.BSE", "RELIANCE.BSE", "HDFCBANK.BSE", "BHARTIARTL.BSE", "ICICIBANK.BSE"]
+#
+#     errors = []
+#
+#     for sym in symbol:
+#         json_data = get_daily_time_series(function, sym)
+#         # json_data, error_message = get_daily_time_series(function, sym)
+#
+#         # if error_message:
+#         #     errors.append(error_message)
+#         #     continue
+#
+#         stock_symbol = json_data["Meta Data"]["2. Symbol"]
+#         last_refresh = json_data["Meta Data"]["3. Last Refreshed"]
+#         last_refresh_date = datetime.strptime(last_refresh, "%Y-%m-%d").date()
+#
+#         # StockJason.objects.update_or_create(
+#         #     user=user,
+#         #     stock_name=stock_symbol,
+#         #     last_refresh_data=last_refresh_date,
+#         #     defaults={
+#         #         "meta_data": json_data
+#         #     }
+#         # )
+#         StockJason.objects.update_or_create(
+#             user=user,
+#             stock_name=stock_symbol,
+#             defaults={
+#                 "meta_data": json_data,
+#                 "last_refresh_data": last_refresh_date
+#             }
+#         )
+#
+#     print("✅ Stock JSON data saved successfully.")
+#     if errors:
+#         print("⚠️ Errors:", errors)
+
+
+#
+# @login_required
+# def jason_db(request):
+#     function = ["TIME_SERIES_DAILY"]
+#     symbol = ["TCS.BSE", "RELIANCE.BSE", "HDFCBANK.BSE", "BHARTIARTL.BSE", "ICICIBANK.BSE"]
+#
+#     # Initialize a list to hold messages
+#     messages_list = []
+#     for i in range(len(symbol)):
+#         # Call the function that fetches, processes, and stores the data
+#         json_data, error_message = get_daily_time_series(function, symbol[i])
+#         if error_message:
+#             messages_list.append(error_message)  # Collect error messages
+#             continue  # Continue to the next symbol instead of breaking
+#
+#         # json_data = load_json_from_file('stock_data.json')
+#
+#         # Extract the stock symbol from the Meta Data
+#         stock_symbol = json_data["Meta Data"]["2. Symbol"]
+#         last_refresh = json_data["Meta Data"]["3. Last Refreshed"]
+#         last_refresh_data = datetime.strptime(last_refresh, '%Y-%m-%d').date()
+#         meta_data = json_data
+#         user = request.user
+#
+#         # Save the data in the database, ensuring to handle updates or duplicates
+#         StockJason.objects.update_or_create(
+#             user=user,
+#             last_refresh_data=last_refresh_data,
+#             stock_name=stock_symbol,
+#             defaults={'meta_data': meta_data}
+#         )
+#
+#         # Print a success message only if at least one symbol was processed successfully
+#     if messages_list:
+#         for msg in messages_list:
+#             messages.error(request, msg)  # Use Django messages framework for displaying
+#
+#     print("Stock Data successfully saved to the database.")
+#     return render(request, 'auth/api_key_form.html', {'message': messages})
+
+
+# @login_required
+# def fetch_jason_db_data(request):
+#     # List of stock symbols you want to retrieve
+#     stock_symbols = ["TCS.BSE", "RELIANCE.BSE", "HDFCBANK.BSE", "BHARTIARTL.BSE", "ICICIBANK.BSE"]
+#
+#     # Fetch the latest refresh date for each stock symbol for the current user
+#     latest_records = StockJason.objects.filter(user=request.user, stock_name__in=stock_symbols) \
+#         .values('stock_name') \
+#         .annotate(latest_date=Max('last_refresh_data'))  # Get the latest refresh date for each stock
+#
+#     if latest_records.exists():
+#         print("Found latest records")
+#     else:
+#         print("No latest records found for the user")
+#
+#     # Create a dictionary to hold the latest stock data
+#     latest_stock_data = {}
+#
+#     # Loop through the results to fetch the full stock record
+#     for record in latest_records:
+#         stock_name = record['stock_name']
+#         latest_date = record['latest_date']
+#
+#         # Get the latest record for each stock symbol
+#         stock_record = StockJason.objects.filter(user=request.user, stock_name=stock_name,
+#                                                  last_refresh_data=latest_date).first()
+#
+#         if stock_record:
+#             latest_stock_data[stock_name] = stock_record.meta_data  # Store the JSON data
+#
+#     return latest_stock_data
+
+def fetch_jason_db_data(user):
     # List of stock symbols you want to retrieve
     stock_symbols = ["TCS.BSE", "RELIANCE.BSE", "HDFCBANK.BSE", "BHARTIARTL.BSE", "ICICIBANK.BSE"]
 
-    # Fetch the latest refresh date for each stock symbol for the current user
-    latest_records = StockJason.objects.filter(user=request.user, stock_name__in=stock_symbols) \
-        .values('stock_name') \
-        .annotate(latest_date=Max('last_refresh_data'))  # Get the latest refresh date for each stock
+    latest_records = (
+        StockJason.objects
+        .filter(user=user, stock_name__in=stock_symbols)
+        .values('stock_name')
+        .annotate(latest_date=Max('last_refresh_data'))
+    )
 
-    if latest_records.exists():
-        print("Found latest records")
-    else:
-        print("No latest records found for the user")
-
-    # Create a dictionary to hold the latest stock data
     latest_stock_data = {}
 
-    # Loop through the results to fetch the full stock record
     for record in latest_records:
         stock_name = record['stock_name']
         latest_date = record['latest_date']
 
-        # Get the latest record for each stock symbol
-        stock_record = StockJason.objects.filter(user=request.user, stock_name=stock_name,
-                                                 last_refresh_data=latest_date).first()
+        stock_record = StockJason.objects.filter(
+            user=user,
+            stock_name=stock_name,
+            last_refresh_data=latest_date
+        ).first()
 
         if stock_record:
-            latest_stock_data[stock_name] = stock_record.meta_data  # Store the JSON data
+            latest_stock_data[stock_name] = stock_record.meta_data
 
     return latest_stock_data
 
@@ -1080,8 +1345,13 @@ def meta_df_columns(df):
     return df_transposed
 
 
-def fetch_and_process_data_all_stock(request):
-    json_data = fetch_jason_db_data(request)
+def fetch_and_process_data_all_stock(user):
+    from django.contrib.auth.models import User
+
+    if not isinstance(user, User):
+        user = User.objects.get(id=user.id)
+
+    json_data = fetch_jason_db_data(user)
 
     df = pd.DataFrame.from_dict(json_data).T.reset_index().rename(columns={'index': 'Symbols'})
     df.index = df.index + 1
@@ -1119,9 +1389,17 @@ def fetch_and_process_data_all_stock(request):
         'HDFCBANK.BSE',
     ]
 
+    # for sym in required_symbols:
+    #     if sym not in symbol_dfs or sym not in meta_symbol_dfs:
+    #         raise ValueError(f"Missing processed data for {sym}")
+    missing = []
+
     for sym in required_symbols:
         if sym not in symbol_dfs or sym not in meta_symbol_dfs:
-            raise ValueError(f"Missing processed data for {sym}")
+            missing.append(sym)
+
+    if missing:
+        print("⚠ Missing processed stocks:", missing)
 
     # -----------------------------
     # 3️⃣ SAFE EXTRACTION
@@ -1153,11 +1431,11 @@ def fetch_and_process_data_all_stock(request):
     reliance_meta_df = meta_df_columns(reliance_meta_df)
     tcs_meta_df = meta_df_columns(tcs_meta_df)
 
-    store_stock_data(request, 'BHARTIARTL.BSE', bhartiartl_df)
-    store_stock_data(request, 'ICICIBANK.BSE', icicibank_df)
-    store_stock_data(request, 'RELIANCE.BSE', reliance_df)
-    store_stock_data(request, 'TCS.BSE', tcs_df)
-    store_stock_data(request, 'HDFCBANK.BSE', hdfcbank_df)
+    store_stock_data(user, 'BHARTIARTL.BSE', bhartiartl_df)
+    store_stock_data(user, 'ICICIBANK.BSE', icicibank_df)
+    store_stock_data(user, 'RELIANCE.BSE', reliance_df)
+    store_stock_data(user, 'TCS.BSE', tcs_df)
+    store_stock_data(user, 'HDFCBANK.BSE', hdfcbank_df)
 
     return (
         bhartiartl_df, bhartiartl_meta_df,
@@ -1242,13 +1520,13 @@ def fetch_and_process_data_all_stock(request):
 #             hdfcbank_df, hdfcbank_meta_df)
 
 
-def store_stock_data(request, stock_name, stock_df):
+def store_stock_data(user, stock_name, stock_df):
     first_row = stock_df.head(1).iloc[0]
 
     with transaction.atomic():
         # Check for an existing record
         existing_record = CurrentPrice.objects.filter(
-            user=request.user,
+            user=user,
             stock_name=stock_name,
             date=first_row['Date']
         ).first()
@@ -1264,7 +1542,7 @@ def store_stock_data(request, stock_name, stock_df):
             return existing_record
         else:
             stock_record = CurrentPrice(
-                user=request.user,
+                user=user,
                 stock_name=stock_name,
                 date=first_row['Date'],
                 open=first_row['Open'],
@@ -1277,12 +1555,12 @@ def store_stock_data(request, stock_name, stock_df):
             return stock_record
 
 
-def fetch_and_store_stock_data(request):
+def fetch_and_store_stock_data(user):
     (bhartiartl_df, bhartiartl_meta_df,
      icicibank_df, icicibank_meta_df,
      reliance_df, reliance_meta_df,
      tcs_df, tcs_meta_df,
-     hdfcbank_df, hdfcbank_meta_df) = fetch_and_process_data_all_stock(request)
+     hdfcbank_df, hdfcbank_meta_df) = fetch_and_process_data_all_stock(user)
 
     return bhartiartl_df, bhartiartl_meta_df, icicibank_df, icicibank_meta_df, reliance_df, reliance_meta_df, tcs_df, tcs_meta_df, hdfcbank_df, hdfcbank_meta_df
 
@@ -1411,7 +1689,7 @@ def model_explainability_view(request):
      icicibank_df, icicibank_meta_df,
      reliance_df, reliance_meta_df,
      tcs_df, tcs_meta_df,
-     hdfcbank_df, hdfcbank_meta_df) = fetch_and_store_stock_data(request)
+     hdfcbank_df, hdfcbank_meta_df) = fetch_and_store_stock_data(request.user)
 
     stock_data_dict = {
         'Bharti Airtel': bhartiartl_df,
@@ -1491,7 +1769,7 @@ def predict_df(request):
      icicibank_df, icicibank_meta_df,
      reliance_df, reliance_meta_df,
      tcs_df, tcs_meta_df,
-     hdfcbank_df, hdfcbank_meta_df) = fetch_and_store_stock_data(request)
+     hdfcbank_df, hdfcbank_meta_df) = fetch_and_store_stock_data(request.user)
 
     # List of stock dataframes and their corresponding metadata
     stock_dfs = [bhartiartl_df, icicibank_df, reliance_df, tcs_df, hdfcbank_df]
@@ -1715,7 +1993,7 @@ def train_models_with_hyperparameters(request, hyperparams):
      icicibank_df, icicibank_meta_df,
      reliance_df, reliance_meta_df,
      tcs_df, tcs_meta_df,
-     hdfcbank_df, hdfcbank_meta_df) = fetch_and_store_stock_data(request)
+     hdfcbank_df, hdfcbank_meta_df) = fetch_and_store_stock_data(request.user)
 
     symbol_to_df = {
         'BHARTIARTL.BSE': bhartiartl_df,
@@ -1838,7 +2116,7 @@ from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 from auth_app.models import StockNewsSentiment
-from .services.news_fetcher import store_news_for_user
+
 from .services.news_processing import process_news_for_user
 
 # @login_required
@@ -1859,6 +2137,28 @@ from auth_app.models import UserSentimentStatus
 import threading
 
 
+#
+# @login_required
+# def run_sentiment(request):
+#     status, _ = UserSentimentStatus.objects.get_or_create(user=request.user)
+#
+#     if status.status == "RUNNING":
+#         return JsonResponse({
+#             "status": "already_running",
+#             "message": "Sentiment analysis already running"
+#         })
+#
+#     threading.Thread(
+#         target=run_sentiment_background,
+#         args=(request.user.id,),
+#         daemon=True
+#     ).start()
+#
+#     return JsonResponse({
+#         "status": "started",
+#         "message": "Sentiment analysis started in background"
+#     })
+
 @login_required
 def run_sentiment(request):
     status, _ = UserSentimentStatus.objects.get_or_create(user=request.user)
@@ -1869,9 +2169,14 @@ def run_sentiment(request):
             "message": "Sentiment analysis already running"
         })
 
+    # ✅ reset status before starting
+    status.status = "QUEUED"
+    status.error_message = ""
+    status.save()
+
     threading.Thread(
         target=run_sentiment_background,
-        args=(request.user,),
+        args=(request.user.id,),
         daemon=True
     ).start()
 
@@ -1887,9 +2192,33 @@ from auth_app.models import StockNewsSentiment
 from django.contrib.auth.decorators import login_required
 
 
+# @login_required
+# def sentiment_dashboard(request):
+#     # Step 1: get latest refresh date per stock
+#     latest_per_stock = (
+#         StockNewsSentiment.objects
+#         .filter(user=request.user)
+#         .values("stock_name")
+#         .annotate(latest_date=Max("last_refresh_data"))
+#     )
+#
+#     # Step 2: fetch only those exact rows
+#     records = []
+#     for item in latest_per_stock:
+#         record = StockNewsSentiment.objects.get(
+#             user=request.user,
+#             stock_name=item["stock_name"],
+#             last_refresh_data=item["latest_date"]
+#         )
+#         records.append(record)
+#
+#     return render(request, "auth/sentiment_dashboard.html", {
+#         "records": records
+#     })
+
+
 @login_required
 def sentiment_dashboard(request):
-    # Step 1: get latest refresh date per stock
     latest_per_stock = (
         StockNewsSentiment.objects
         .filter(user=request.user)
@@ -1897,32 +2226,21 @@ def sentiment_dashboard(request):
         .annotate(latest_date=Max("last_refresh_data"))
     )
 
-    # Step 2: fetch only those exact rows
     records = []
+
     for item in latest_per_stock:
-        record = StockNewsSentiment.objects.get(
+        record = StockNewsSentiment.objects.filter(
             user=request.user,
             stock_name=item["stock_name"],
             last_refresh_data=item["latest_date"]
-        )
-        records.append(record)
+        ).first()
+
+        if record:
+            records.append(record)
 
     return render(request, "auth/sentiment_dashboard.html", {
         "records": records
     })
-
-
-# @login_required
-# def sentiment_dashboard(request):
-#     records = StockNewsSentiment.objects.filter(
-#         user=request.user
-#     ).order_by("stock_name")
-#
-#     return render(
-#         request,
-#         "auth/sentiment_dashboard.html",
-#         {"records": records}
-#     )
 
 
 from django.http import JsonResponse
@@ -1953,32 +2271,63 @@ def ai_news_summary(request):
     return JsonResponse({"summary": summary})
 
 
+#
+# from django.http import JsonResponse
+# from django.views.decorators.http import require_GET
+# from .models import StockNewsSentiment
+# from .services.sentiment_service import summarize_stock_news, summarize_ml_findings
+#
+#
+# @require_GET
+# def ai_news_summary(request):
+#     stock = request.GET.get("stock")
+#
+#     record = (
+#         StockNewsSentiment.objects
+#         .filter(stock_name=stock)
+#         .order_by("-last_refresh_data")
+#         .first()
+#     )
+#
+#     if not record:
+#         return JsonResponse({"summary": "No data available."})
+#
+#     try:
+#         summary = summarize_stock_news(
+#             stock_name=stock,
+#             news_list=record.meta_data.get("news", [])
+#         )
+#
+#         # ✅ FORCE STRING
+#         if isinstance(summary, dict):
+#             summary = (
+#                 f"Overall Sentiment: {summary.get('sentiment','')}\n"
+#                 f"Confidence: {summary.get('confidence','')}\n"
+#                 f"Reason: {summary.get('reason','')}"
+#             )
+#
+#         return JsonResponse({"summary": str(summary)})
+#
+#     except Exception as e:
+#         print("AI SUMMARY ERROR:", e)
+#         return JsonResponse({
+#             "summary": "AI summary could not be generated at the moment."
+#         })
+#
+
 @login_required
 def aiml_summary_page(request):
     return render(request, "auth/aiml_summary.html")
 
-
-def normalize_symbols(raw_stock: str):
-    """
-    Accepts:
-      RELIANCE
-      RELIANCE.BSE
-      RELIANCE_BSE
-
-    Returns:
-      {
-        base: RELIANCE
-        dot:  RELIANCE.BSE
-        underscore: RELIANCE_BSE
-      }
-    """
-    base = raw_stock.replace(".BSE", "").replace("_BSE", "").upper()
-
-    return {
-        "base": base,
-        "dot": f"{base}.BSE",
-        "underscore": f"{base}_BSE",
+def normalize_stock_name(raw_stock: str):
+    mapping = {
+        "TCS": "TCS",
+        "RELIANCE": "Reliance",
+        "HDFCBANK": "HDFC Bank",
+        "ICICIBANK": "ICICI Bank",
+        "BHARTIARTL": "Bharti Airtel",
     }
+    return mapping.get(raw_stock.upper())
 
 
 @login_required
@@ -1987,42 +2336,46 @@ def ai_ml_summary(request):
     user = request.user
 
     if not raw_stock:
-        return JsonResponse({"error": "Stock is required"}, status=400)
+        return JsonResponse({"error": "Stock required"}, status=400)
 
-    # ---------------- SYMBOL NORMALIZATION ----------------
-    symbols = normalize_symbols(raw_stock)
-    base = symbols["base"]
-    dot = symbols["dot"]
-    underscore = symbols["underscore"]
+    db_stock_name = normalize_stock_name(raw_stock)
 
-    # ---------------- BEST MODEL (BestModelRecord) ----------------
+    if not db_stock_name:
+        return JsonResponse({"error": "Invalid stock symbol"}, status=400)
+
+    # =====================================================
+    # ✅ BEST MODEL
+    # =====================================================
     best = (
         BestModelRecord.objects
-        .filter(user=user, stock_name=underscore)
+        .filter(user=user, stock_name=db_stock_name)
         .order_by("-id")
         .first()
     )
 
     if not best:
-        return JsonResponse(
-            {"error": f"No ML best-model data found for {base}"},
-            status=404
-        )
+        return JsonResponse({
+            "ai_summary": f"No ML model data found for {db_stock_name}."
+        })
 
-    # ---------------- PERFORMANCE (StockPerformance) ----------------
+    # =====================================================
+    # ✅ PERFORMANCE (OPTIONAL)
+    # =====================================================
     perf = (
-               StockPerformance.objects
-               .filter(user=user, symbol=dot)
-               .values(
-                   "linear_model_success_rate",
-                   "decision_tree_model_success_rate",
-                   "random_forest_model_success_rate",
-                   "svm_model_success_rate",
-               )
-               .last()
-           ) or {}
+        StockPerformance.objects
+        .filter(user=user)
+        .values(
+            "linear_model_success_rate",
+            "decision_tree_model_success_rate",
+            "random_forest_model_success_rate",
+            "svm_model_success_rate",
+        )
+        .last()
+    ) or {}
 
-    # ---------------- NEWS SENTIMENT ----------------
+    # =====================================================
+    # ✅ NEWS SENTIMENT
+    # =====================================================
     news_signal = None
     news_confidence = None
     news_summary = None
@@ -2030,7 +2383,7 @@ def ai_ml_summary(request):
     try:
         news = (
             StockNewsSentiment.objects
-            .filter(user=user, stock_name=base)
+            .filter(user=user, stock_name=db_stock_name)
             .latest("last_refresh_data")
         )
 
@@ -2038,47 +2391,36 @@ def ai_ml_summary(request):
         news_confidence = news.meta_data.get("sentiment_score")
         news_summary = news.meta_data.get("summary")
 
-    except StockNewsSentiment.DoesNotExist:
-        pass  # ML-only summary is still valid
+    except Exception as e:
+        print("⚠ News not found:", e)
 
-    # ---------------- RECENT PREDICTIONS (OPTIONAL USE) ----------------
-    recent_preds = (
-        StockPrediction.objects
-        .filter(user=user, symbol=dot)
-        .order_by("-date")[:5]
-    )
+    # =====================================================
+    # ✅ AI SUMMARY
+    # =====================================================
+    try:
+        summary = summarize_ml_findings(
+            stock=db_stock_name,
+            best_model={
+                "model_name": best.best_model,
+                "success_rate": best.success_rate,
+                "directional_success_rate": best.directional_success_rate,
+                "average_error": best.average_error,
+            },
+            performance=perf,
+            news={
+                "signal": news_signal,
+                "confidence": news_confidence,
+                "summary": news_summary,
+            }
+        )
 
-    predictions_summary = [
-        {
-            "date": p.date,
-            "close": p.close,
-            "linear": p.linear_model,
-            "decision_tree": p.decision_tree_model,
-            "random_forest": p.random_forest_model,
-            "svm": p.svm_model,
-        }
-        for p in recent_preds
-    ]
+        print("✅ AI SUMMARY GENERATED")
 
-    # ---------------- AI SUMMARY (CORRECT PLACE) ----------------
-    summary = summarize_ml_findings(
-        stock=base,
-        best_model={
-            "model_name": best.best_model,
-            "success_rate": best.success_rate,
-            "directional_success_rate": best.directional_success_rate,
-            "average_error": best.average_error,
-        },
-        performance=perf,
-        news={
-            "signal": news_signal,
-            "confidence": news_confidence,
-            "summary": news_summary,
-        }
-    )
+    except Exception as e:
+        print("🔥 AI ERROR:", e)
+        summary = "AI service temporarily unavailable."
 
     return JsonResponse({
-        "stock": base,
-        "symbol": dot,
-        "ai_summary": summary,
+        "stock": db_stock_name,
+        "ai_summary": summary
     })
