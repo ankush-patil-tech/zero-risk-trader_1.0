@@ -1,3 +1,4 @@
+import json
 import os
 import requests
 import pandas as pd
@@ -18,10 +19,17 @@ def get_daily_time_series(function, symbol):
     }
     response = requests.get(BASE_URL, params=params)
     data = response.json()
-    if "Information" in data:
-        return None, data["Information"]
-    else:
-        return data, None
+    # if "Information" in data:
+    #     return None, data["Information"]
+    # else:
+    #     return data, None
+
+    # ❌ API error
+    if "Information" in data or "Error Message" in data:
+        print("API ERROR:", data.get("Information") or data.get("Error Message"))
+        return None
+
+    return data
 
 
 def saving_files(json_data, filename):
@@ -39,4 +47,3 @@ def getting_files(filename):
     df = pd.read_csv(file_path, index_col=0)
     df.reset_index(inplace=True)
     return df
-
