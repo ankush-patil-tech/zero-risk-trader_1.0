@@ -1,6 +1,8 @@
 import json
 from datetime import datetime, date
 from decimal import Decimal
+# from urllib import request
+
 import matplotlib
 from dateutil.utils import today
 from django.contrib.messages import get_messages
@@ -601,10 +603,6 @@ from django.contrib import messages
 
 @login_required
 def dashboard_view(request):
-    # ✅ CLEAR OLD MESSAGES FIRST
-    storage = get_messages(request)
-    for _ in storage:
-        pass
     user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
 
     if not user_profile.api_key:
@@ -612,27 +610,63 @@ def dashboard_view(request):
 
     Portfolio.objects.get_or_create(user=request.user)
 
-    today = date.today()
-
-    # 🔄 First login of the day
-    if user_profile.last_data_fetch_date != today:
-
-        messages.info(request, "⏳ Fetching latest stock data...")
-
-        jason_db(request.user)
-
-        user_profile.last_data_fetch_date = today
-        user_profile.save()
-
-        messages.success(request, "✅ Latest stock data fetched successfully.")
-
-    else:
-        messages.success(
-            request,
-            "📊 Latest data already fetched today."
-        )
-
     return render(request, 'portfolio/dashboard.html')
+
+
+from datetime import date
+
+@login_required
+def fetch_latest_data(request):
+    profile = request.user.userprofile
+
+    if profile.last_data_fetch_date == date.today():
+        messages.info(request, "📊 Data already fetched today.")
+        return redirect("dashboard")
+
+    jason_db(request.user)
+
+    profile.last_data_fetch_date = date.today()
+    profile.save()
+
+    messages.success(request, "✅ Data updated successfully.")
+    return redirect("dashboard")
+
+
+
+# @login_required
+# def dashboard_view(request):
+#     # ✅ CLEAR OLD MESSAGES FIRST
+#     storage = get_messages(request)
+#     for _ in storage:
+#         pass
+#     user_profile, _ = UserProfile.objects.get_or_create(user=request.user)
+#
+#     if not user_profile.api_key:
+#         return redirect('save_api_key')
+#
+#     Portfolio.objects.get_or_create(user=request.user)
+#
+#     today = date.today()
+#
+#     # 🔄 First login of the day
+#     if user_profile.last_data_fetch_date != today:
+#
+#         messages.info(request, "⏳ Fetching latest stock data...")
+#
+#         jason_db(request.user)
+#
+#         user_profile.last_data_fetch_date = today
+#         user_profile.save()
+#
+#         messages.success(request, "✅ Latest stock data fetched successfully.")
+#
+#     else:
+#         messages.success(
+#             request,
+#             "📊 Latest data already fetched today."
+#         )
+#
+#     return render(request, 'portfolio/dashboard.html')
 
 
 def logout_view(request):
@@ -2317,6 +2351,7 @@ def ai_news_summary(request):
 def aiml_summary_page(request):
     return render(request, "auth/aiml_summary.html")
 
+
 def normalize_stock_name(raw_stock: str):
     mapping = {
         "TCS": "TCS",
@@ -2360,16 +2395,16 @@ def ai_ml_summary(request):
     # ✅ PERFORMANCE (OPTIONAL)
     # =====================================================
     perf = (
-        StockPerformance.objects
-        .filter(user=user)
-        .values(
-            "linear_model_success_rate",
-            "decision_tree_model_success_rate",
-            "random_forest_model_success_rate",
-            "svm_model_success_rate",
-        )
-        .last()
-    ) or {}
+               StockPerformance.objects
+               .filter(user=user)
+               .values(
+                   "linear_model_success_rate",
+                   "decision_tree_model_success_rate",
+                   "random_forest_model_success_rate",
+                   "svm_model_success_rate",
+               )
+               .last()
+           ) or {}
 
     # =====================================================
     # ✅ NEWS SENTIMENT
