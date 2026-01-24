@@ -1,8 +1,6 @@
 import json
 from datetime import datetime, date
 from decimal import Decimal
-# from urllib import request
-
 import matplotlib
 from dateutil.utils import today
 from django.contrib.messages import get_messages
