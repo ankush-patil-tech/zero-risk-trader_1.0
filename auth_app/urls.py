@@ -23,6 +23,7 @@ urlpatterns = [
     path('login/', views.login_view, name='login'),
     path('logout/', views.logout_view, name='logout'),
     path('dashboard/', views.dashboard_view, name='dashboard'),
+    path("fetch-data/", views.fetch_latest_data, name="fetch_data"),
     # path('register-alpha-vantage/', views.alpha_vantage_register, name='alpha_vantage_register'),
     # path('api_key_form/', api_key_form, name='api_key_form'),
     path('save-api-key/', views.save_api_key, name='save_api_key'),
