@@ -16,7 +16,7 @@ STOCKS = {
 
 def store_news_for_user(user):
     """
-    Fetch news and store RAW news in StockNews table
+    Fetch news and store RAW news in StockNews table (SAFE)
     """
 
     for stock, query in STOCKS.items():
@@ -28,14 +28,28 @@ def store_news_for_user(user):
         )
 
         for article in response.get("articles", []):
+
+            headline = article.get("title") or ""
+            content = article.get("content") or ""
+            source = article.get("source", {}).get("name") or ""
+
+            published_at_raw = article.get("publishedAt")
+            published_at = (
+                parse_datetime(published_at_raw)
+                if published_at_raw else None
+            )
+
+            # ❗ skip useless articles
+            if not headline.strip():
+                continue
+
             StockNews.objects.get_or_create(
                 user=user,
                 stock_name=stock,
-                headline=article.get("title"),
-                source=article.get("source", {}).get("name"),
-                published_at=parse_datetime(article.get("publishedAt")),
-                content=article.get("content") or ""
+                headline=headline.strip(),
+                source=source.strip(),
+                published_at=published_at,
+                content=content.strip()
             )
 
     print("✅ Raw news stored successfully")
-
